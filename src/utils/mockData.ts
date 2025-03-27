@@ -9,9 +9,16 @@ export interface Stock {
   marketCap: number;
   high52w: number;
   low52w: number;
+  yearHigh: number; // Added for StockDetails
+  yearLow: number; // Added for StockDetails
+  open: number; // Added for StockDetails
+  previousClose: number; // Added for MarketActions
+  dayHigh: number; // Added for StockDetails
+  dayLow: number; // Added for StockDetails
   averageVolume: number;
   peRatio: number | null;
   dividend: number | null;
+  dividendYield: number; // Added for StockDetails
   industry: string;
   logo: string;
   description: string;
@@ -43,9 +50,16 @@ export const mockStocks: Stock[] = [
     marketCap: 2950000000000,
     high52w: 198.23,
     low52w: 142.19,
+    yearHigh: 198.23, // Same as high52w
+    yearLow: 142.19, // Same as low52w
+    open: 187.52, // Added
+    previousClose: 187.52, // Added
+    dayHigh: 190.45, // Added
+    dayLow: 186.60, // Added
     averageVolume: 57423500,
     peRatio: 31.2,
     dividend: 0.96,
+    dividendYield: 0.51, // Added
     industry: "Technology",
     logo: "/apple-logo.svg",
     description: "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, a line of smartphones."
@@ -61,9 +75,16 @@ export const mockStocks: Stock[] = [
     marketCap: 3120000000000,
     high52w: 430.82,
     low52w: 309.45,
+    yearHigh: 430.82, // Same as high52w
+    yearLow: 309.45, // Same as low52w
+    open: 422.18, // Added
+    previousClose: 422.18, // Added
+    dayHigh: 423.50, // Added
+    dayLow: 417.00, // Added
     averageVolume: 25632400,
     peRatio: 35.8,
     dividend: 3.00,
+    dividendYield: 0.72, // Added
     industry: "Technology",
     logo: "/microsoft-logo.svg",
     description: "Microsoft Corporation develops, licenses, and supports software, services, devices, and solutions worldwide. The company operates in three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing."
@@ -79,9 +100,16 @@ export const mockStocks: Stock[] = [
     marketCap: 1870000000000,
     high52w: 189.77,
     low52w: 114.31,
+    yearHigh: 189.77, // Same as high52w
+    yearLow: 114.31, // Same as low52w
+    open: 180.47, // Added
+    previousClose: 180.47, // Added
+    dayHigh: 183.50, // Added
+    dayLow: 180.00, // Added
     averageVolume: 42567800,
     peRatio: 45.2,
     dividend: null,
+    dividendYield: 0, // Added
     industry: "Consumer Cyclical",
     logo: "/amazon-logo.svg",
     description: "Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions in North America and internationally. It operates through three segments: North America, International, and Amazon Web Services (AWS)."
@@ -97,9 +125,16 @@ export const mockStocks: Stock[] = [
     marketCap: 2050000000000,
     high52w: 169.87,
     low52w: 120.21,
+    yearHigh: 169.87, // Same as high52w
+    yearLow: 120.21, // Same as low52w
+    open: 163.72, // Added
+    previousClose: 163.72, // Added
+    dayHigh: 164.50, // Added
+    dayLow: 162.00, // Added
     averageVolume: 29876500,
     peRatio: 28.4,
     dividend: null,
+    dividendYield: 0, // Added
     industry: "Technology",
     logo: "/alphabet-logo.svg",
     description: "Alphabet Inc. offers various products and platforms in the United States, Europe, the Middle East, Africa, the Asia-Pacific, Canada, and Latin America. It operates through Google Services, Google Cloud, and Other Bets segments."
@@ -115,9 +150,16 @@ export const mockStocks: Stock[] = [
     marketCap: 560000000000,
     high52w: 278.98,
     low52w: 138.80,
+    yearHigh: 278.98, // Same as high52w
+    yearLow: 138.80, // Same as low52w
+    open: 170.00, // Added
+    previousClose: 170.00, // Added
+    dayHigh: 176.50, // Added
+    dayLow: 169.50, // Added
     averageVolume: 102345600,
     peRatio: 50.1,
     dividend: null,
+    dividendYield: 0, // Added
     industry: "Automotive",
     logo: "/tesla-logo.svg",
     description: "Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems in the United States, China, and internationally."
@@ -133,9 +175,16 @@ export const mockStocks: Stock[] = [
     marketCap: 2150000000000,
     high52w: 925.68,
     low52w: 222.97,
+    yearHigh: 925.68, // Same as high52w
+    yearLow: 222.97, // Same as low52w
+    open: 858.29, // Added
+    previousClose: 858.29, // Added
+    dayHigh: 875.00, // Added
+    dayLow: 855.00, // Added
     averageVolume: 47865300,
     peRatio: 72.8,
     dividend: 0.16,
+    dividendYield: 0.02, // Added
     industry: "Technology",
     logo: "/nvidia-logo.svg",
     description: "NVIDIA Corporation provides graphics, and compute and networking solutions in the United States, Taiwan, China, and internationally. The company's Graphics segment offers GeForce GPUs."
@@ -151,9 +200,16 @@ export const mockStocks: Stock[] = [
     marketCap: 1230000000000,
     high52w: 531.49,
     low52w: 279.40,
+    yearHigh: 531.49, // Same as high52w
+    yearLow: 279.40, // Same as low52w
+    open: 475.86, // Added
+    previousClose: 475.86, // Added
+    dayHigh: 477.00, // Added
+    dayLow: 472.00, // Added
     averageVolume: 22654300,
     peRatio: 27.2,
     dividend: null,
+    dividendYield: 0, // Added
     industry: "Technology",
     logo: "/meta-logo.svg",
     description: "Meta Platforms, Inc. develops products that enable people to connect and share with friends and family through mobile devices, personal computers, virtual reality headsets, and wearables worldwide."
@@ -169,30 +225,58 @@ export const mockStocks: Stock[] = [
     marketCap: 570000000000,
     high52w: 200.94,
     low52w: 135.19,
+    yearHigh: 200.94, // Same as high52w
+    yearLow: 135.19, // Same as low52w
+    open: 195.32, // Added
+    previousClose: 195.32, // Added
+    dayHigh: 198.00, // Added
+    dayLow: 195.00, // Added
     averageVolume: 13654200,
     peRatio: 11.8,
     dividend: 4.80,
+    dividendYield: 2.43, // Added
     industry: "Financial Services",
     logo: "/jpmorgan-logo.svg",
     description: "JPMorgan Chase & Co. operates as a financial services company worldwide. It operates through four segments: Consumer & Community Banking, Corporate & Investment Bank, Commercial Banking, and Asset & Wealth Management."
   }
 ];
 
-// Mock price history data for charts
-export const generateMockPriceHistory = (basePrice: number, days: number): PricePoint[] => {
+// Function to get a stock by ID
+export const getStock = (id: string): Stock | undefined => {
+  return mockStocks.find(stock => stock.id === id);
+};
+
+// Generate mock price history data based on a timeframe
+export const getMockChartData = (timeframe: string): PricePoint[] => {
   const today = new Date();
   const result: PricePoint[] = [];
   
+  // Determine number of data points based on timeframe
+  let days;
+  switch (timeframe) {
+    case '1d':
+      days = 1;
+      break;
+    case '1w':
+      days = 7;
+      break;
+    case '1m':
+      days = 30;
+      break;
+    case '1y':
+      days = 365;
+      break;
+    default:
+      days = 30; // Default to 1 month
+  }
+  
+  // Generate mock data points
   for (let i = days; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     
-    // Add some randomness to create realistic price movements
-    const randomChange = (Math.random() - 0.5) * (basePrice * 0.05);
-    const price = basePrice + randomChange;
-    
-    // Update base price for next iteration to create trend
-    basePrice = price;
+    // Generate a random price between 150 and 200
+    const price = 175 + (Math.random() - 0.5) * 50;
     
     result.push({
       date: date.toISOString().split('T')[0],
@@ -202,31 +286,6 @@ export const generateMockPriceHistory = (basePrice: number, days: number): Price
   
   return result;
 };
-
-// Mock market indices
-export const mockIndices: MarketIndex[] = [
-  {
-    id: "sp500",
-    name: "S&P 500",
-    value: 5184.82,
-    change: 34.25,
-    changePercent: 0.67
-  },
-  {
-    id: "nasdaq",
-    name: "NASDAQ",
-    value: 16274.94,
-    change: 130.28,
-    changePercent: 0.81
-  },
-  {
-    id: "dow",
-    name: "Dow Jones",
-    value: 38753.11,
-    change: -45.63,
-    changePercent: -0.12
-  }
-];
 
 // Popular investment categories
 export const investmentCategories = [

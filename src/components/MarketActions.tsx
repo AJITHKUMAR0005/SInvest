@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccount } from '@/hooks/use-account';
 import { useTrade } from '@/hooks/use-trade';
 import { Stock } from '@/utils/mockData';
-import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { calculatePercentChange } from '@/lib/utils';
 import TradeModal from './TradeModal';
 
@@ -15,7 +15,7 @@ interface MarketActionsProps {
 
 const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
   const { balance } = useAccount();
-  const { openTradeModal, isOpen } = useTrade(stock);
+  const { openTradeModal } = useTrade(stock);
   
   const percentChange = calculatePercentChange(stock.price, stock.previousClose);
   const isPositive = percentChange >= 0;

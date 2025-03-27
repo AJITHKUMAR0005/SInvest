@@ -54,6 +54,76 @@ export const useWatchlist = () => {
     }
   };
 
+  const addToWatchlist = async (ticker: string) => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase
+        .from('watchlist')
+        .insert([
+          { user_id: user.id, ticker }
+        ]);
+        
+      if (error) {
+        console.error('Error adding to watchlist:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to add to watchlist",
+          description: error.message,
+        });
+        return;
+      }
+      
+      toast({
+        title: "Added to Watchlist",
+        description: `${ticker} has been added to your watchlist.`,
+      });
+      
+      await fetchWatchlist();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const removeFromWatchlist = async (ticker: string) => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase
+        .from('watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('ticker', ticker);
+        
+      if (error) {
+        console.error('Error removing from watchlist:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to remove from watchlist",
+          description: error.message,
+        });
+        return;
+      }
+      
+      toast({
+        title: "Removed from Watchlist",
+        description: `${ticker} has been removed from your watchlist.`,
+      });
+      
+      await fetchWatchlist();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchWatchlist();
@@ -90,5 +160,7 @@ export const useWatchlist = () => {
     watchlistStocks,
     isLoading,
     refreshWatchlist: fetchWatchlist,
+    addToWatchlist,
+    removeFromWatchlist
   };
 };

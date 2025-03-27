@@ -17,9 +17,10 @@ interface PriceChartProps {
   data: PricePoint[];
   color?: string;
   className?: string;
-  ticker: string;
-  change: number;
+  ticker?: string;
+  change?: number;
   compact?: boolean;
+  timeframe?: string;
 }
 
 const timeRanges = ["1D", "1W", "1M", "3M", "6M", "1Y", "5Y"];
@@ -28,11 +29,12 @@ const PriceChart: React.FC<PriceChartProps> = ({
   data, 
   color = "hsl(var(--primary))", 
   className,
-  ticker,
-  change,
-  compact = false
+  ticker = "",
+  change = 0,
+  compact = false,
+  timeframe = "1M"
 }) => {
-  const [selectedRange, setSelectedRange] = useState("1M");
+  const [selectedRange, setSelectedRange] = useState(timeframe.toUpperCase());
   const isPositive = change >= 0;
   
   // Format numbers for display
