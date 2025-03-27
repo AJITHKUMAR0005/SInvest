@@ -1,24 +1,137 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockStocks, generateMockPriceHistory, userPortfolio } from '@/utils/mockData';
+import { mockStocks, generateMockPriceHistory } from '@/utils/mockData';
 import StockCard from '@/components/StockCard';
 import PriceChart from '@/components/PriceChart';
 import MarketOverview from '@/components/MarketOverview';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight, BarChart3, DollarSign, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowUpRight, BarChart3, DollarSign, TrendingUp, Wallet, Plus, RefreshCcw } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/hooks/use-account';
+import { useInvestments } from '@/hooks/use-investments';
+import { useWatchlist } from '@/hooks/use-watchlist';
+import { useTransactions } from '@/hooks/use-transactions';
+import DepositModal from '@/components/DepositModal';
+import TradeModal from '@/components/TradeModal';
+import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  const { balance, isLoading: isBalanceLoading } = useAccount();
+  const { investments, isLoading: isInvestmentsLoading } = useInvestments();
+  const { watchlistStocks, isLoading: isWatchlistLoading } = useWatchlist();
+  const { transactions, isLoading: isTransactionsLoading } = useTransactions();
+  
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(mockStocks[0]);
   
   // Get popular stocks
   const popularStocks = mockStocks.slice(0, 4);
   
+  // Calculate portfolio value
+  const calculatePortfolioValue = () => {
+    if (isInvestmentsLoading || isBalanceLoading) return 0;
+    
+    const investmentsValue = investments.reduce((total, inv) => {
+      const stock = mockStocks.find(s => s.ticker === inv.ticker);
+      return total + (stock ? stock.price * inv.shares : 0);
+    }, 0);
+    
+    return (balance?.cash_balance || 0) + investmentsValue;
+  };
+  
+  const portfolioValue = calculatePortfolioValue();
+  
   // Generate chart data for portfolio
-  const portfolioHistory = generateMockPriceHistory(userPortfolio.totalValue - 10000, 30);
+  const [portfolioHistory, setPortfolioHistory] = useState(generateMockPriceHistory(10000, 30));
+  
+  // Calculate daily change
+  const dailyChange = popularStocks.reduce((sum, stock) => sum + stock.change, 0);
+  const dailyChangePercent = ((dailyChange / (portfolioValue - dailyChange)) * 100).toFixed(2);
+
+  // Refresh portfolio history when value changes
+  useEffect(() => {
+    setPortfolioHistory(generateMockPriceHistory(portfolioValue - 10000, 30));
+  }, [portfolioValue]);
+  
+  // Format transactions for display
+  const formatTransactions = transactions.map(tx => {
+    let type = tx.type;
+    let ticker = '';
+    let shares = '';
+    let price = '';
+    
+    if (tx.description && (tx.type === 'buy' || tx.type === 'sell')) {
+      const match = tx.description.match(/(\d+) shares of ([A-Z]+)/);
+      if (match) {
+        shares = match[1];
+        ticker = match[2];
+      }
+      price = `$${(tx.amount / parseFloat(shares || '1')).toFixed(2)}`;
+    }
+    
+    return {
+      id: tx.id,
+      type,
+      ticker,
+      date: format(new Date(tx.created_at), 'MMM d, yyyy'),
+      price,
+      shares,
+      amount: tx.amount,
+    };
+  });
+  
+  // Calculate allocation percentages for holdings
+  const totalInvestmentValue = investments.reduce((total, inv) => {
+    const stock = mockStocks.find(s => s.ticker === inv.ticker);
+    return total + (stock ? stock.price * inv.shares : 0);
+  }, 0);
+  
+  const holdings = investments.map(inv => {
+    const stock = mockStocks.find(s => s.ticker === inv.ticker);
+    const value = stock ? stock.price * inv.shares : 0;
+    const allocationPercentage = ((value / (totalInvestmentValue || 1)) * 100).toFixed(1);
+    
+    return {
+      ...inv,
+      value,
+      allocationPercentage,
+    };
+  }).sort((a, b) => b.value - a.value);
+  
+  // Get top performer from holdings
+  const getTopPerformer = () => {
+    if (holdings.length === 0) return null;
+    
+    return holdings.reduce((top, current) => {
+      const currentStock = mockStocks.find(s => s.ticker === current.ticker);
+      const topStock = mockStocks.find(s => s.ticker === top.ticker);
+      
+      if (!currentStock || !topStock) return top;
+      
+      return currentStock.changePercent > topStock.changePercent ? current : top;
+    }, holdings[0]);
+  };
+  
+  const topPerformer = getTopPerformer();
+  const topPerformerStock = topPerformer ? mockStocks.find(s => s.ticker === topPerformer.ticker) : null;
+  
+  // Loading state
+  const isLoading = isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
   
   return (
     <AnimatedTransition>
@@ -30,7 +143,7 @@ const Dashboard: React.FC = () => {
             <div className="flex flex-col gap-6">
               {/* Welcome Section */}
               <section className="mb-2">
-                <h1 className="text-3xl font-bold tracking-tight">Welcome back, John</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email}</h1>
                 <p className="text-muted-foreground">
                   Here's what's happening with your investments today.
                 </p>
@@ -50,9 +163,9 @@ const Dashboard: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline mb-6">
-                      <h2 className="text-3xl font-bold">${userPortfolio.totalValue.toLocaleString()}</h2>
-                      <span className={`ml-2 text-sm font-medium ${userPortfolio.dailyChange >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {userPortfolio.dailyChange >= 0 ? '+' : ''}${userPortfolio.dailyChange.toLocaleString()} ({userPortfolio.dailyChangePercent}%)
+                      <h2 className="text-3xl font-bold">${portfolioValue.toLocaleString()}</h2>
+                      <span className={`ml-2 text-sm font-medium ${dailyChange >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {dailyChange >= 0 ? '+' : ''}{dailyChange.toLocaleString()} ({dailyChangePercent}%)
                       </span>
                     </div>
                     
@@ -60,7 +173,7 @@ const Dashboard: React.FC = () => {
                       <PriceChart 
                         data={portfolioHistory} 
                         ticker="Portfolio" 
-                        change={userPortfolio.dailyChange}
+                        change={dailyChange}
                       />
                     </div>
                   </CardContent>
@@ -76,10 +189,16 @@ const Dashboard: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col">
-                        <span className="text-2xl font-bold">${userPortfolio.cashBalance.toLocaleString()}</span>
+                        <span className="text-2xl font-bold">${balance?.cash_balance.toLocaleString()}</span>
                         <span className="text-sm text-muted-foreground">Available to invest</span>
                       </div>
-                      <Button variant="outline" size="sm" className="mt-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-4"
+                        onClick={() => setIsDepositModalOpen(true)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
                         Deposit Funds
                       </Button>
                     </CardContent>
@@ -93,13 +212,29 @@ const Dashboard: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-2xl font-bold">NVDA</span>
-                          <div className="text-sm text-success">+$15.44 (1.8%)</div>
+                      {topPerformer && topPerformerStock ? (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-2xl font-bold">{topPerformer.ticker}</span>
+                            <div className={`text-sm ${topPerformerStock.change >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {topPerformerStock.change >= 0 ? '+' : ''}${topPerformerStock.change.toFixed(2)} ({topPerformerStock.changePercent.toFixed(1)}%)
+                            </div>
+                          </div>
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedStock(topPerformerStock);
+                            }}
+                            asChild
+                          >
+                            <Link to={`/stocks/${topPerformerStock.id}`}>View</Link>
+                          </Button>
                         </div>
-                        <Button size="sm">View</Button>
-                      </div>
+                      ) : (
+                        <div className="text-center py-2 text-muted-foreground">
+                          No investments yet
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -136,25 +271,62 @@ const Dashboard: React.FC = () => {
                 
                 <TabsContent value="portfolio" className="space-y-6">
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Your Holdings</CardTitle>
-                      <CardDescription>Current allocation of your portfolio</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div>
+                        <CardTitle>Your Holdings</CardTitle>
+                        <CardDescription>Current allocation of your portfolio</CardDescription>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Refresh data
+                        }}
+                      >
+                        <RefreshCcw className="h-4 w-4 mr-2" />
+                        Refresh
+                      </Button>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {userPortfolio.holdings.map(holding => (
-                          <div key={holding.ticker} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                            <div>
-                              <div className="font-medium">{holding.ticker}</div>
-                              <div className="text-sm text-muted-foreground">{holding.shares} shares</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium">${holding.value.toLocaleString()}</div>
-                              <div className="text-sm text-muted-foreground">{holding.allocationPercentage}% of portfolio</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {holdings.length > 0 ? (
+                        <div className="space-y-4">
+                          {holdings.map(holding => {
+                            const stock = mockStocks.find(s => s.ticker === holding.ticker);
+                            return (
+                              <div key={holding.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                                <div>
+                                  <div className="flex items-center">
+                                    <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center text-sm font-semibold mr-2">
+                                      {holding.ticker.substring(0, 2)}
+                                    </div>
+                                    <div>
+                                      <div className="font-medium">{holding.ticker}</div>
+                                      <div className="text-sm text-muted-foreground">{holding.shares.toLocaleString()} shares</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium">${holding.value.toLocaleString()}</div>
+                                  <div className="text-sm text-muted-foreground">{holding.allocationPercentage}% of portfolio</div>
+                                  {stock && (
+                                    <div className={`text-xs ${stock.change >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                      {stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)} today
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                          <p>You don't have any investments yet.</p>
+                          <Button className="mt-4">
+                            Browse Stocks
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -166,8 +338,18 @@ const Dashboard: React.FC = () => {
                       <CardDescription>Stocks you're monitoring</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground text-center py-8">You haven't added any stocks to your watchlist yet.</p>
-                      <Button className="w-full">Add Stocks to Watchlist</Button>
+                      {watchlistStocks.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {watchlistStocks.map(stock => (
+                            <StockCard key={stock.id} stock={stock} />
+                          ))}
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-muted-foreground text-center py-8">You haven't added any stocks to your watchlist yet.</p>
+                          <Button className="w-full">Add Stocks to Watchlist</Button>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -179,35 +361,44 @@ const Dashboard: React.FC = () => {
                       <CardDescription>Your trading activity</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {userPortfolio.recentTransactions.map(tx => (
-                          <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                            <div className="flex items-center">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
-                                tx.type === 'buy' ? 'bg-success/10 text-success' : 
-                                tx.type === 'sell' ? 'bg-destructive/10 text-destructive' : 
-                                'bg-primary/10 text-primary'
-                              }`}>
-                                {tx.type === 'buy' ? '↑' : tx.type === 'sell' ? '↓' : '$'}
+                      {formatTransactions.length > 0 ? (
+                        <div className="space-y-4">
+                          {formatTransactions.map(tx => (
+                            <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                              <div className="flex items-center">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                                  tx.type === 'buy' ? 'bg-success/10 text-success' : 
+                                  tx.type === 'sell' ? 'bg-destructive/10 text-destructive' : 
+                                  tx.type === 'deposit' ? 'bg-primary/10 text-primary' : 
+                                  'bg-secondary/80 text-muted-foreground'
+                                }`}>
+                                  {tx.type === 'buy' ? '↑' : tx.type === 'sell' ? '↓' : tx.type === 'deposit' ? '+' : '-'}
+                                </div>
+                                <div>
+                                  <div className="font-medium capitalize">
+                                    {tx.type} {tx.ticker && `${tx.ticker}`}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">{tx.date}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium capitalize">{tx.type} {tx.ticker}</div>
-                                <div className="text-sm text-muted-foreground">{tx.date}</div>
+                              <div className="text-right">
+                                {['buy', 'sell'].includes(tx.type) ? (
+                                  <>
+                                    <div className="font-medium">{tx.shares} shares</div>
+                                    <div className="text-sm text-muted-foreground">{tx.price}/share</div>
+                                  </>
+                                ) : (
+                                  <div className={`font-medium ${tx.type === 'deposit' ? 'text-success' : 'text-destructive'}`}>
+                                    {tx.type === 'deposit' ? '+' : '-'}${tx.amount.toLocaleString()}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <div className="text-right">
-                              {tx.type === 'dividend' ? (
-                                <div className="font-medium text-success">+${tx.amount}</div>
-                              ) : (
-                                <>
-                                  <div className="font-medium">{tx.shares} shares</div>
-                                  <div className="text-sm text-muted-foreground">${tx.price}</div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">No transactions yet.</p>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -215,6 +406,16 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </main>
+        
+        {/* Modals */}
+        <DepositModal 
+          isOpen={isDepositModalOpen} 
+          onClose={() => setIsDepositModalOpen(false)} 
+        />
+        
+        {selectedStock && (
+          <TradeModal stock={selectedStock} />
+        )}
       </div>
     </AnimatedTransition>
   );

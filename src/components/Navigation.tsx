@@ -13,7 +13,8 @@ import {
   Menu, 
   X, 
   Bell,
-  Search
+  Search,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,21 +27,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserSettings } from '@/hooks/use-user-settings';
 
 const Navigation: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { user, signOut } = useAuth();
+  const { settings, toggleDarkMode } = useUserSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
-  
-  // Handle dark mode toggle
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
   
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -56,6 +51,16 @@ const Navigation: React.FC = () => {
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    return user.email ? user.email.substring(0, 2).toUpperCase() : 'U';
   };
   
   return (
@@ -113,10 +118,10 @@ const Navigation: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={() => toggleDarkMode()}
             className="text-muted-foreground"
           >
-            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {settings?.dark_mode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
           
           <Button variant="ghost" size="icon" className="text-muted-foreground relative">
@@ -124,23 +129,39 @@ const Navigation: React.FC = () => {
             <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    JS
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Account Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-4 py-2">
+                  <p className="text-sm font-medium">{user.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Account Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="default" size="sm" asChild>
+              <Link to="/auth">Log In</Link>
+            </Button>
+          )}
         </div>
       </div>
       
@@ -184,6 +205,16 @@ const Navigation: React.FC = () => {
                 <Settings className="w-5 h-5" />
                 <span className="font-medium">Settings</span>
               </Link>
+              {user && (
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 h-auto text-destructive hover:text-destructive"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Log out</span>
+                </Button>
+              )}
             </nav>
           </div>
         </div>

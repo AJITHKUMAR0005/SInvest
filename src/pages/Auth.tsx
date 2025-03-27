@@ -1,216 +1,194 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowRight, Mail, Lock, Github, Instagram } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import AnimatedTransition from '@/components/AnimatedTransition';
 
-const Auth: React.FC = () => {
+const Auth = () => {
+  const { user, isLoading, signIn, signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      window.location.href = '/dashboard';
-    }, 1500);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [authTab, setAuthTab] = useState('login');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  // Redirect if already logged in
+  if (!isLoading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const validateForm = () => {
+    const newErrors = {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
+    let isValid = true;
+
+    if (!email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email is invalid';
+      isValid = false;
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+
+    if (authTab === 'register' && password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
-  
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      if (authTab === 'login') {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+        setAuthTab('login');
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AnimatedTransition>
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/10 blur-[100px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-success/10 blur-[100px]" />
-        </div>
-        
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center justify-center">
-              <div className="relative w-12 h-12 mr-2 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                SI
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-secondary/20">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-2">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+                <span className="font-bold text-xl text-white">SI</span>
               </div>
-              <h1 className="text-3xl font-bold">SmartInvest</h1>
-            </Link>
-            <p className="text-muted-foreground mt-2">
-              Access your investment portfolio
-            </p>
-          </div>
-          
-          <div className="bg-card border border-border rounded-xl shadow-lg p-6 backdrop-blur-sm">
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="register">Create Account</TabsTrigger>
+            </div>
+            <CardTitle className="text-2xl">SmartInvest</CardTitle>
+            <CardDescription>
+              {authTab === 'login' 
+                ? 'Sign in to your account to continue' 
+                : 'Create an account to get started'}
+            </CardDescription>
+          </CardHeader>
+          <Tabs value={authTab} onValueChange={setAuthTab}>
+            <div className="px-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
+            </div>
+            
+            <form onSubmit={handleAuth}>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      className="pl-10"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10 pr-10"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                </div>
+                
+                <TabsContent value="register" className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      id="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                  )}
+                </TabsContent>
+              </CardContent>
               
-              <TabsContent value="login">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        id="email"
-                        placeholder="name@example.com"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        autoComplete="email"
-                        required
-                      />
+              <CardFooter>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="h-4 w-4 mr-2 rounded-full border-2 border-t-transparent animate-spin"></div>
+                      Processing...
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
-                      <a
-                        href="#"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        Forgot?
-                      </a>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
-                        autoComplete="current-password"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Signing in...
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        Sign in
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </span>
-                    )}
-                  </Button>
-                  
-                  <div className="relative flex items-center justify-center text-xs uppercase text-muted-foreground my-4">
-                    <span className="bg-card px-2 z-10">Or continue with</span>
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t"></span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" type="button" className="text-sm">
-                      <Github className="mr-2 h-4 w-4" /> GitHub
-                    </Button>
-                    <Button variant="outline" type="button" className="text-sm">
-                      <Instagram className="mr-2 h-4 w-4" /> Google
-                    </Button>
-                  </div>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="register">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="first-name">First name</Label>
-                      <Input id="first-name" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="last-name">Last name</Label>
-                      <Input id="last-name" required />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        id="register-email"
-                        placeholder="name@example.com"
-                        type="email"
-                        autoComplete="email"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        autoComplete="new-password"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full" type="submit">
-                    <span className="flex items-center">
-                      Create Account
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </span>
-                  </Button>
-                  
-                  <div className="relative flex items-center justify-center text-xs uppercase text-muted-foreground my-4">
-                    <span className="bg-card px-2 z-10">Or continue with</span>
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t"></span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" type="button" className="text-sm">
-                      <Github className="mr-2 h-4 w-4" /> GitHub
-                    </Button>
-                    <Button variant="outline" type="button" className="text-sm">
-                      <Instagram className="mr-2 h-4 w-4" /> Google
-                    </Button>
-                  </div>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            By continuing, you agree to SmartInvest's{" "}
-            <a href="#" className="underline underline-offset-4 hover:text-primary">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="underline underline-offset-4 hover:text-primary">
-              Privacy Policy
-            </a>
-            .
-          </p>
-        </div>
+                  ) : authTab === 'login' ? 'Sign In' : 'Create Account'}
+                </Button>
+              </CardFooter>
+            </form>
+          </Tabs>
+        </Card>
       </div>
     </AnimatedTransition>
   );
