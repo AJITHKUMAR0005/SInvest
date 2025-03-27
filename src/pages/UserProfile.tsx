@@ -85,7 +85,8 @@ const UserProfile = () => {
     }
   };
 
-  const handleToggleNotification = async (key: keyof typeof settings?.notification_preferences) => {
+  // Fixed the type definition to avoid using optional chaining in a type context
+  const handleToggleNotification = async (key: 'price_alerts' | 'order_updates' | 'market_news') => {
     if (!settings) return;
     
     const newPreferences = {
