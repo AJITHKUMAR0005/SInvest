@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,15 +37,34 @@ export const useUserSettings = () => {
         return;
       }
 
-      // Convert the JSON notification_preferences to the expected structure
+      // Parse the notification_preferences to ensure it's an object with the expected structure
+      let notificationPrefs = {
+        price_alerts: true,
+        order_updates: true,
+        market_news: true
+      };
+      
+      // Try to parse the notification_preferences if it's a string
+      if (typeof data.notification_preferences === 'string') {
+        try {
+          notificationPrefs = JSON.parse(data.notification_preferences);
+        } catch (e) {
+          console.error('Error parsing notification preferences:', e);
+        }
+      } else if (data.notification_preferences && typeof data.notification_preferences === 'object') {
+        // If it's already an object, use it but ensure all expected properties exist
+        notificationPrefs = {
+          price_alerts: Boolean(data.notification_preferences.price_alerts ?? true),
+          order_updates: Boolean(data.notification_preferences.order_updates ?? true),
+          market_news: Boolean(data.notification_preferences.market_news ?? true)
+        };
+      }
+
+      // Create the user settings object with properly typed notification preferences
       const userSettings: UserSettings = {
         ...data,
         dark_mode: data.dark_mode === true, // ensure boolean
-        notification_preferences: {
-          price_alerts: data.notification_preferences?.price_alerts === true,
-          order_updates: data.notification_preferences?.order_updates === true,
-          market_news: data.notification_preferences?.market_news === true
-        }
+        notification_preferences: notificationPrefs
       };
 
       setSettings(userSettings);

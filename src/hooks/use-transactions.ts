@@ -40,12 +40,26 @@ export const useTransactions = () => {
         return;
       }
 
-      // Cast the data to Transaction[] type to ensure type safety
-      setTransactions(data?.map(item => ({
-        ...item,
-        type: item.type as 'deposit' | 'withdrawal' | 'buy' | 'sell' | 'dividend',
-        status: item.status as 'pending' | 'completed' | 'failed'
-      })) || []);
+      // Properly cast the type and status to ensure type safety
+      setTransactions(data?.map(item => {
+        // Ensure the type is one of the valid enum values
+        let transactionType: Transaction['type'] = 'deposit';
+        if (['deposit', 'withdrawal', 'buy', 'sell', 'dividend'].includes(item.type)) {
+          transactionType = item.type as Transaction['type'];
+        }
+        
+        // Ensure the status is one of the valid enum values
+        let transactionStatus: Transaction['status'] = 'completed';
+        if (['pending', 'completed', 'failed'].includes(item.status)) {
+          transactionStatus = item.status as Transaction['status'];
+        }
+        
+        return {
+          ...item,
+          type: transactionType,
+          status: transactionStatus
+        };
+      }) || []);
     } catch (error) {
       console.error('Unexpected error:', error);
     } finally {
