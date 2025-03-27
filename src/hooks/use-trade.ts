@@ -1,14 +1,14 @@
 
 import { useState } from 'react';
 import { useInvestments } from '@/hooks/use-investments';
-import { Stock } from '@/utils/mockData';
+import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 
-export const useTrade = (stock: Stock) => {
+export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', asset: Stock | MutualFund | DigitalGold) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [shares, setShares] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { buyStock, sellStock, investments } = useInvestments();
+  const { buyAsset, sellAsset, investments } = useInvestments();
 
   const openTradeModal = (type: 'buy' | 'sell') => {
     setTradeType(type);
@@ -32,9 +32,9 @@ export const useTrade = (stock: Stock) => {
       let result;
       
       if (tradeType === 'buy') {
-        result = await buyStock(stock, shareCount);
+        result = await buyAsset(asset, shareCount, assetType);
       } else {
-        result = await sellStock(stock, shareCount);
+        result = await sellAsset(asset, shareCount, assetType);
       }
       
       if (result.success) {
@@ -47,13 +47,32 @@ export const useTrade = (stock: Stock) => {
     }
   };
 
-  // Calculate owned shares
-  const ownedInvestment = investments.find(inv => inv.ticker === stock.ticker);
+  // Get ticker or identifier based on asset type
+  const getAssetIdentifier = () => {
+    if (assetType === 'stock') return (asset as Stock).ticker;
+    if (assetType === 'mutual_fund') return (asset as MutualFund).ticker;
+    if (assetType === 'digital_gold') return (asset as DigitalGold).id;
+    return '';
+  };
+
+  // Get price based on asset type
+  const getAssetPrice = () => {
+    if (assetType === 'stock') return (asset as Stock).price;
+    if (assetType === 'mutual_fund') return (asset as MutualFund).price;
+    if (assetType === 'digital_gold') return (asset as DigitalGold).pricePerGram;
+    return 0;
+  };
+
+  // Calculate owned shares/units
+  const ownedInvestment = investments.find(inv => 
+    inv.ticker === getAssetIdentifier() && 
+    inv.asset_type === assetType
+  );
   const ownedShares = ownedInvestment?.shares || 0;
 
   // Calculate purchase power
   const shareAmount = shares ? parseFloat(shares) : 0;
-  const totalCost = shareAmount * stock.price;
+  const totalCost = shareAmount * getAssetPrice();
 
   return {
     isOpen,

@@ -5,15 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAccount } from '@/hooks/use-account';
-import { Stock } from '@/utils/mockData';
+import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 import { useTrade } from '@/hooks/use-trade';
 
 interface TradeModalProps {
-  stock: Stock;
+  asset: Stock | MutualFund | DigitalGold;
+  assetType: 'stock' | 'mutual_fund' | 'digital_gold';
 }
 
-const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
+const TradeModal: React.FC<TradeModalProps> = ({ asset, assetType }) => {
   const { balance } = useAccount();
+  
+  // Cast asset to appropriate type
+  const stock = assetType === 'stock' ? asset as Stock : null;
+  const mutualFund = assetType === 'mutual_fund' ? asset as MutualFund : null;
+  const digitalGold = assetType === 'digital_gold' ? asset as DigitalGold : null;
+  
+  // Use appropriate asset for the trade hook
   const { 
     isOpen, 
     tradeType, 
@@ -24,7 +32,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
     totalCost,
     closeTradeModal, 
     executeTrade 
-  } = useTrade(stock);
+  } = useTrade(assetType, asset);
 
   const [error, setError] = React.useState('');
 
@@ -35,6 +43,22 @@ const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
       setShares(value);
       setError('');
     }
+  };
+
+  // Get the current price based on asset type
+  const getCurrentPrice = () => {
+    if (stock) return stock.price;
+    if (mutualFund) return mutualFund.price;
+    if (digitalGold) return digitalGold.pricePerGram;
+    return 0;
+  };
+
+  // Get the asset name/ticker based on asset type
+  const getAssetName = () => {
+    if (stock) return stock.ticker;
+    if (mutualFund) return mutualFund.ticker;
+    if (digitalGold) return digitalGold.name;
+    return '';
   };
 
   // Validate the trade
@@ -64,18 +88,27 @@ const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
     setError('');
   }, [shares, tradeType, balance, totalCost, ownedShares]);
 
+  // Determine unit label based on asset type
+  const getUnitLabel = () => {
+    if (assetType === 'digital_gold') return 'grams';
+    return 'shares';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeTradeModal()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {stock.ticker}
+            {tradeType === 'buy' ? 'Buy' : 'Sell'} {getAssetName()}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Current Price:</span>
-            <span className="font-semibold">${stock.price.toLocaleString()}</span>
+            <span className="font-semibold">
+              ${getCurrentPrice().toLocaleString()}
+              {assetType === 'digital_gold' ? '/gram' : ''}
+            </span>
           </div>
           
           {tradeType === 'buy' && balance && (
@@ -87,13 +120,13 @@ const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
           
           {tradeType === 'sell' && (
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Shares Owned:</span>
+              <span className="text-sm font-medium">{getUnitLabel()} Owned:</span>
               <span className="font-semibold">{ownedShares.toLocaleString()}</span>
             </div>
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="shares">Number of Shares</Label>
+            <Label htmlFor="shares">Number of {getUnitLabel()}</Label>
             <Input
               id="shares"
               type="text"
@@ -122,7 +155,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ stock }) => {
                 Processing...
               </div>
             ) : (
-              tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'
+              tradeType === 'buy' ? `Buy ${getUnitLabel()}` : `Sell ${getUnitLabel()}`
             )}
           </Button>
         </DialogFooter>

@@ -24,6 +24,37 @@ export interface Stock {
   description: string;
 }
 
+export interface MutualFund {
+  id: string;
+  ticker: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  aum: number;
+  category: string;
+  riskLevel: 'Low' | 'Moderate' | 'High';
+  expenseRatio: number;
+  oneYearReturn: number;
+  threeYearReturn: number;
+  fiveYearReturn: number;
+  manager: string;
+  description: string;
+  logo: string;
+}
+
+export interface DigitalGold {
+  id: string;
+  name: string;
+  pricePerGram: number;
+  change: number;
+  changePercent: number;
+  purity: string;
+  minimumQuantity: number;
+  description: string;
+  logo: string;
+}
+
 export interface PricePoint {
   date: string;
   price: number;
@@ -264,8 +295,98 @@ export const mockStocks: Stock[] = [
   }
 ];
 
+export const mockMutualFunds: MutualFund[] = [
+  {
+    id: "vfiax",
+    ticker: "VFIAX",
+    name: "Vanguard 500 Index Fund",
+    price: 452.87,
+    change: 1.23,
+    changePercent: 0.27,
+    aum: 325000000000,
+    category: "Large Blend",
+    riskLevel: "Moderate",
+    expenseRatio: 0.04,
+    oneYearReturn: 12.5,
+    threeYearReturn: 10.2,
+    fiveYearReturn: 9.8,
+    manager: "Donald Butler",
+    description: "This fund tracks the performance of the S&P 500 index, which is made up of approximately 500 of the largest U.S. companies.",
+    logo: "/vanguard-logo.svg"
+  },
+  {
+    id: "fxaix",
+    ticker: "FXAIX",
+    name: "Fidelity 500 Index Fund",
+    price: 168.23,
+    change: 0.45,
+    changePercent: 0.26,
+    aum: 285000000000,
+    category: "Large Blend",
+    riskLevel: "Moderate",
+    expenseRatio: 0.015,
+    oneYearReturn: 12.4,
+    threeYearReturn: 10.1,
+    fiveYearReturn: 9.7,
+    manager: "Louis Bottari",
+    description: "This fund invests at least 80% of assets in S&P 500 companies and aims to provide investment results that correspond to the total return of common stocks.",
+    logo: "/fidelity-logo.svg"
+  },
+  {
+    id: "vbtlx",
+    ticker: "VBTLX",
+    name: "Vanguard Total Bond Market Index Fund",
+    price: 10.92,
+    change: -0.02,
+    changePercent: -0.18,
+    aum: 125000000000,
+    category: "Intermediate-Term Bond",
+    riskLevel: "Low",
+    expenseRatio: 0.05,
+    oneYearReturn: 3.8,
+    threeYearReturn: 2.2,
+    fiveYearReturn: 3.5,
+    manager: "Joshua Barrickman",
+    description: "This fund seeks to track the performance of a broad, market-weighted bond index. It provides broad exposure to U.S. investment grade bonds.",
+    logo: "/vanguard-logo.svg"
+  }
+];
+
+export const mockDigitalGold: DigitalGold[] = [
+  {
+    id: "gold-24k",
+    name: "24K Digital Gold",
+    pricePerGram: 67.45,
+    change: 0.32,
+    changePercent: 0.48,
+    purity: "99.9%",
+    minimumQuantity: 0.01,
+    description: "24K digital gold offers pure gold investment in electronic form, backed by physical gold stored in secure vaults. It provides a convenient way to invest in gold without holding physical gold.",
+    logo: "/gold-logo.svg"
+  },
+  {
+    id: "gold-22k",
+    name: "22K Digital Gold",
+    pricePerGram: 61.82,
+    change: 0.29,
+    changePercent: 0.47,
+    purity: "91.6%",
+    minimumQuantity: 0.01,
+    description: "22K digital gold offers 91.6% pure gold investment in electronic form, backed by physical gold stored in secure vaults. It is slightly less pure than 24K gold but offers more durability.",
+    logo: "/gold-logo.svg"
+  }
+];
+
 export const getStock = (id: string): Stock | undefined => {
   return mockStocks.find(stock => stock.id === id);
+};
+
+export const getMutualFund = (id: string): MutualFund | undefined => {
+  return mockMutualFunds.find(fund => fund.id === id);
+};
+
+export const getDigitalGold = (id: string): DigitalGold | undefined => {
+  return mockDigitalGold.find(gold => gold.id === id);
 };
 
 export const getMockChartData = (timeframe: string): PricePoint[] => {
@@ -384,3 +505,22 @@ export const userPortfolio = {
     { id: "tx4", type: "dividend", ticker: "MSFT", amount: 67.50, date: "2023-05-01" }
   ]
 };
+
+export const aiRecommendationCategories = [
+  { id: "beginner", name: "Beginner Investor", description: "Low-risk investments for those just starting their investment journey" },
+  { id: "growth", name: "Growth Focused", description: "Investments aimed at capital appreciation over the long term" },
+  { id: "income", name: "Income Generation", description: "Investments that provide regular income through dividends or interest" },
+  { id: "retirement", name: "Retirement Planning", description: "Balanced portfolio recommendations for retirement savings" },
+  { id: "aggressive", name: "Aggressive Growth", description: "High-risk, high-reward investments for experienced investors" }
+];
+
+export const predefinedQueries = [
+  "What stocks should I invest in as a beginner?",
+  "How should I diversify my portfolio?",
+  "What are the best mutual funds for long-term growth?",
+  "Should I invest in digital gold?",
+  "How do I start investing with $1000?",
+  "What's the difference between stocks and mutual funds?",
+  "How can I invest for retirement?",
+  "What are the tax implications of selling stocks?"
+];

@@ -4,34 +4,82 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccount } from '@/hooks/use-account';
 import { useTrade } from '@/hooks/use-trade';
-import { Stock } from '@/utils/mockData';
+import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { calculatePercentChange } from '@/lib/utils';
 import TradeModal from './TradeModal';
 
 interface MarketActionsProps {
-  stock: Stock;
+  asset: Stock | MutualFund | DigitalGold;
+  assetType: 'stock' | 'mutual_fund' | 'digital_gold';
 }
 
-const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
+const MarketActions: React.FC<MarketActionsProps> = ({ asset, assetType }) => {
   const { balance } = useAccount();
-  const { openTradeModal } = useTrade(stock);
+  const { openTradeModal } = useTrade(assetType, asset);
   
-  const percentChange = calculatePercentChange(stock.price, stock.previousClose);
+  // Get asset details based on type
+  const getAssetDetails = () => {
+    if (assetType === 'stock') {
+      const stock = asset as Stock;
+      return {
+        name: stock.name,
+        ticker: stock.ticker,
+        price: stock.price,
+        previousPrice: stock.previousClose,
+        change: stock.change,
+        changePercent: stock.changePercent
+      };
+    } else if (assetType === 'mutual_fund') {
+      const fund = asset as MutualFund;
+      return {
+        name: fund.name,
+        ticker: fund.ticker,
+        price: fund.price,
+        previousPrice: fund.price - fund.change, // Calculate previous price
+        change: fund.change,
+        changePercent: fund.changePercent
+      };
+    } else {
+      const gold = asset as DigitalGold;
+      return {
+        name: gold.name,
+        ticker: gold.id,
+        price: gold.pricePerGram,
+        previousPrice: gold.pricePerGram - gold.change, // Calculate previous price
+        change: gold.change,
+        changePercent: gold.changePercent
+      };
+    }
+  };
+  
+  const details = getAssetDetails();
+  const percentChange = calculatePercentChange(details.price, details.previousPrice);
   const isPositive = percentChange >= 0;
+
+  // Get appropriate unit label based on asset type
+  const getUnitLabel = () => {
+    if (assetType === 'digital_gold') return 'grams';
+    return 'shares';
+  };
 
   return (
     <>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Market Actions</CardTitle>
-          <CardDescription>Buy or sell {stock.name} ({stock.ticker}) shares</CardDescription>
+          <CardDescription>
+            Buy or sell {details.name} {details.ticker ? `(${details.ticker})` : ''} {getUnitLabel()}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-1">
             <div className="flex justify-between items-center py-1">
               <span className="text-sm font-medium">Current Price</span>
-              <span className="font-semibold">${stock.price.toLocaleString()}</span>
+              <span className="font-semibold">
+                ${details.price.toLocaleString()}
+                {assetType === 'digital_gold' ? '/gram' : ''}
+              </span>
             </div>
             <div className="flex justify-between items-center py-1">
               <span className="text-sm font-medium">24h Change</span>
@@ -65,7 +113,7 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
         </CardFooter>
       </Card>
       
-      <TradeModal stock={stock} />
+      <TradeModal asset={asset} assetType={assetType} />
     </>
   );
 };

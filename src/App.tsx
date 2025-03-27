@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import StockDetails from "./pages/StockDetails";
 import UserProfile from "./pages/UserProfile";
 import Learning from "./pages/Learning";
+import Market from "./pages/Market";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,11 @@ const App = () => (
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/market" element={
+                <ProtectedRoute>
+                  <Market />
                 </ProtectedRoute>
               } />
               <Route path="/stocks/:id" element={
