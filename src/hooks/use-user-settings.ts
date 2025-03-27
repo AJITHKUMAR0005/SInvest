@@ -38,10 +38,21 @@ export const useUserSettings = () => {
         return;
       }
 
-      setSettings(data);
+      // Convert the JSON notification_preferences to the expected structure
+      const userSettings: UserSettings = {
+        ...data,
+        dark_mode: data.dark_mode === true, // ensure boolean
+        notification_preferences: {
+          price_alerts: data.notification_preferences?.price_alerts === true,
+          order_updates: data.notification_preferences?.order_updates === true,
+          market_news: data.notification_preferences?.market_news === true
+        }
+      };
+
+      setSettings(userSettings);
       
       // Apply dark mode setting
-      if (data?.dark_mode) {
+      if (userSettings.dark_mode) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');

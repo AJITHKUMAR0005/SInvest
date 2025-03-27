@@ -1,4 +1,3 @@
-
 export interface Stock {
   id: string;
   ticker: string;
@@ -15,6 +14,7 @@ export interface Stock {
   dividend: number | null;
   industry: string;
   logo: string;
+  description: string;
 }
 
 export interface PricePoint {
@@ -47,7 +47,8 @@ export const mockStocks: Stock[] = [
     peRatio: 31.2,
     dividend: 0.96,
     industry: "Technology",
-    logo: "/apple-logo.svg"
+    logo: "/apple-logo.svg",
+    description: "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, a line of smartphones."
   },
   {
     id: "msft",
@@ -64,7 +65,8 @@ export const mockStocks: Stock[] = [
     peRatio: 35.8,
     dividend: 3.00,
     industry: "Technology",
-    logo: "/microsoft-logo.svg"
+    logo: "/microsoft-logo.svg",
+    description: "Microsoft Corporation develops, licenses, and supports software, services, devices, and solutions worldwide. The company operates in three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing."
   },
   {
     id: "amzn",
@@ -81,7 +83,8 @@ export const mockStocks: Stock[] = [
     peRatio: 45.2,
     dividend: null,
     industry: "Consumer Cyclical",
-    logo: "/amazon-logo.svg"
+    logo: "/amazon-logo.svg",
+    description: "Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions in North America and internationally. It operates through three segments: North America, International, and Amazon Web Services (AWS)."
   },
   {
     id: "googl",
@@ -98,7 +101,8 @@ export const mockStocks: Stock[] = [
     peRatio: 28.4,
     dividend: null,
     industry: "Technology",
-    logo: "/alphabet-logo.svg"
+    logo: "/alphabet-logo.svg",
+    description: "Alphabet Inc. offers various products and platforms in the United States, Europe, the Middle East, Africa, the Asia-Pacific, Canada, and Latin America. It operates through Google Services, Google Cloud, and Other Bets segments."
   },
   {
     id: "tsla",
@@ -115,7 +119,8 @@ export const mockStocks: Stock[] = [
     peRatio: 50.1,
     dividend: null,
     industry: "Automotive",
-    logo: "/tesla-logo.svg"
+    logo: "/tesla-logo.svg",
+    description: "Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems in the United States, China, and internationally."
   },
   {
     id: "nvda",
@@ -132,7 +137,8 @@ export const mockStocks: Stock[] = [
     peRatio: 72.8,
     dividend: 0.16,
     industry: "Technology",
-    logo: "/nvidia-logo.svg"
+    logo: "/nvidia-logo.svg",
+    description: "NVIDIA Corporation provides graphics, and compute and networking solutions in the United States, Taiwan, China, and internationally. The company's Graphics segment offers GeForce GPUs."
   },
   {
     id: "meta",
@@ -149,7 +155,8 @@ export const mockStocks: Stock[] = [
     peRatio: 27.2,
     dividend: null,
     industry: "Technology",
-    logo: "/meta-logo.svg"
+    logo: "/meta-logo.svg",
+    description: "Meta Platforms, Inc. develops products that enable people to connect and share with friends and family through mobile devices, personal computers, virtual reality headsets, and wearables worldwide."
   },
   {
     id: "jpm",
@@ -166,7 +173,8 @@ export const mockStocks: Stock[] = [
     peRatio: 11.8,
     dividend: 4.80,
     industry: "Financial Services",
-    logo: "/jpmorgan-logo.svg"
+    logo: "/jpmorgan-logo.svg",
+    description: "JPMorgan Chase & Co. operates as a financial services company worldwide. It operates through four segments: Consumer & Community Banking, Corporate & Investment Bank, Commercial Banking, and Asset & Wealth Management."
   }
 ];
 

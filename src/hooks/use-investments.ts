@@ -43,7 +43,11 @@ export const useInvestments = () => {
         return;
       }
 
-      setInvestments(data || []);
+      // Cast the data to Investment[] type to ensure type safety
+      setInvestments(data?.map(item => ({
+        ...item,
+        asset_type: item.asset_type as 'stock' | 'mutual_fund' | 'bond'
+      })) || []);
     } catch (error) {
       console.error('Unexpected error:', error);
     } finally {

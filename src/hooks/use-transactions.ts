@@ -40,7 +40,12 @@ export const useTransactions = () => {
         return;
       }
 
-      setTransactions(data || []);
+      // Cast the data to Transaction[] type to ensure type safety
+      setTransactions(data?.map(item => ({
+        ...item,
+        type: item.type as 'deposit' | 'withdrawal' | 'buy' | 'sell' | 'dividend',
+        status: item.status as 'pending' | 'completed' | 'failed'
+      })) || []);
     } catch (error) {
       console.error('Unexpected error:', error);
     } finally {
