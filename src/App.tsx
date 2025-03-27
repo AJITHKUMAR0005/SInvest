@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import StockDetails from "./pages/StockDetails";
+import UserProfile from "./pages/UserProfile";
+import Learning from "./pages/Learning";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,16 @@ const App = () => (
               <Route path="/stocks/:id" element={
                 <ProtectedRoute>
                   <StockDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/learning" element={
+                <ProtectedRoute>
+                  <Learning />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

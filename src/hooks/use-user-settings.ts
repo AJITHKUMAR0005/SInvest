@@ -54,10 +54,11 @@ export const useUserSettings = () => {
         }
       } else if (data.notification_preferences && typeof data.notification_preferences === 'object') {
         // If it's already an object, use it but ensure all expected properties exist
+        const prefs = data.notification_preferences as Record<string, any>;
         notificationPrefs = {
-          price_alerts: Boolean(data.notification_preferences.price_alerts ?? true),
-          order_updates: Boolean(data.notification_preferences.order_updates ?? true),
-          market_news: Boolean(data.notification_preferences.market_news ?? true)
+          price_alerts: prefs.price_alerts !== undefined ? Boolean(prefs.price_alerts) : true,
+          order_updates: prefs.order_updates !== undefined ? Boolean(prefs.order_updates) : true,
+          market_news: prefs.market_news !== undefined ? Boolean(prefs.market_news) : true
         };
       }
 

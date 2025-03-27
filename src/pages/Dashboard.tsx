@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,7 @@ import PriceChart from '@/components/PriceChart';
 import MarketOverview from '@/components/MarketOverview';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight, BarChart3, DollarSign, TrendingUp, Wallet, Plus, RefreshCcw } from 'lucide-react';
+import { ArrowUpRight, BarChart3, DollarSign, TrendingUp, Wallet, Plus, RefreshCcw, ExternalLink, BookOpen } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/hooks/use-account';
@@ -19,6 +18,21 @@ import DepositModal from '@/components/DepositModal';
 import TradeModal from '@/components/TradeModal';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+
+const featuredLearningContent = [
+  {
+    title: 'Understanding Market Volatility',
+    type: 'article',
+    source: 'Investopedia',
+    link: '/learning'
+  },
+  {
+    title: 'Technical Analysis Basics',
+    type: 'video',
+    source: 'YouTube',
+    link: '/learning'
+  }
+];
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -31,10 +45,8 @@ const Dashboard: React.FC = () => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(mockStocks[0]);
   
-  // Get popular stocks
   const popularStocks = mockStocks.slice(0, 4);
   
-  // Calculate portfolio value
   const calculatePortfolioValue = () => {
     if (isInvestmentsLoading || isBalanceLoading) return 0;
     
@@ -48,19 +60,15 @@ const Dashboard: React.FC = () => {
   
   const portfolioValue = calculatePortfolioValue();
   
-  // Generate chart data for portfolio
   const [portfolioHistory, setPortfolioHistory] = useState(generateMockPriceHistory(10000, 30));
   
-  // Calculate daily change
   const dailyChange = popularStocks.reduce((sum, stock) => sum + stock.change, 0);
   const dailyChangePercent = ((dailyChange / (portfolioValue - dailyChange)) * 100).toFixed(2);
 
-  // Refresh portfolio history when value changes
   useEffect(() => {
     setPortfolioHistory(generateMockPriceHistory(portfolioValue - 10000, 30));
   }, [portfolioValue]);
   
-  // Format transactions for display
   const formatTransactions = transactions.map(tx => {
     let type = tx.type;
     let ticker = '';
@@ -87,7 +95,6 @@ const Dashboard: React.FC = () => {
     };
   });
   
-  // Calculate allocation percentages for holdings
   const totalInvestmentValue = investments.reduce((total, inv) => {
     const stock = mockStocks.find(s => s.ticker === inv.ticker);
     return total + (stock ? stock.price * inv.shares : 0);
@@ -105,7 +112,6 @@ const Dashboard: React.FC = () => {
     };
   }).sort((a, b) => b.value - a.value);
   
-  // Get top performer from holdings
   const getTopPerformer = () => {
     if (holdings.length === 0) return null;
     
@@ -122,7 +128,6 @@ const Dashboard: React.FC = () => {
   const topPerformer = getTopPerformer();
   const topPerformerStock = topPerformer ? mockStocks.find(s => s.ticker === topPerformer.ticker) : null;
   
-  // Loading state
   const isLoading = isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
   
   if (isLoading) {
@@ -141,7 +146,6 @@ const Dashboard: React.FC = () => {
         <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col gap-6">
-              {/* Welcome Section */}
               <section className="mb-2">
                 <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email}</h1>
                 <p className="text-muted-foreground">
@@ -149,7 +153,6 @@ const Dashboard: React.FC = () => {
                 </p>
               </section>
               
-              {/* Portfolio Summary */}
               <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="glass-panel col-span-1 md:col-span-2">
                   <CardHeader className="pb-2">
@@ -162,18 +165,19 @@ const Dashboard: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-baseline mb-6">
+                    <div className="flex items-baseline mb-2">
                       <h2 className="text-3xl font-bold">${portfolioValue.toLocaleString()}</h2>
                       <span className={`ml-2 text-sm font-medium ${dailyChange >= 0 ? 'text-success' : 'text-destructive'}`}>
                         {dailyChange >= 0 ? '+' : ''}{dailyChange.toLocaleString()} ({dailyChangePercent}%)
                       </span>
                     </div>
                     
-                    <div className="h-[200px]">
+                    <div className="h-[180px]">
                       <PriceChart 
                         data={portfolioHistory} 
                         ticker="Portfolio" 
                         change={dailyChange}
+                        compact={true}
                       />
                     </div>
                   </CardContent>
@@ -192,15 +196,29 @@ const Dashboard: React.FC = () => {
                         <span className="text-2xl font-bold">${balance?.cash_balance.toLocaleString()}</span>
                         <span className="text-sm text-muted-foreground">Available to invest</span>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-4"
-                        onClick={() => setIsDepositModalOpen(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Deposit Funds
-                      </Button>
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsDepositModalOpen(true)}
+                          className="flex-1"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Deposit
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            const randomStock = mockStocks[Math.floor(Math.random() * mockStocks.length)];
+                            setSelectedStock(randomStock);
+                          }}
+                          asChild
+                        >
+                          <Link to={`/stocks/${mockStocks[0].id}`}>Trade</Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                   
@@ -240,7 +258,6 @@ const Dashboard: React.FC = () => {
                 </div>
               </section>
               
-              {/* Main Dashboard Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList className="bg-secondary/50 p-1">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -253,15 +270,58 @@ const Dashboard: React.FC = () => {
                   <section>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold">Popular Stocks</h2>
-                      <Button variant="outline" size="sm">
-                        View All
-                        <ArrowUpRight className="ml-2 h-4 w-4" />
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/stocks/AAPL">
+                          View All
+                          <ArrowUpRight className="ml-2 h-4 w-4" />
+                        </Link>
                       </Button>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {popularStocks.map(stock => (
                         <StockCard key={stock.id} stock={stock} />
+                      ))}
+                    </div>
+                  </section>
+                  
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold">Learning Resources</h2>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/learning">
+                          Explore All
+                          <ArrowUpRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {featuredLearningContent.map((content, index) => (
+                        <Card key={index} className="hover:bg-secondary/10 transition-colors">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-3">
+                                <div className="mt-1 p-2 rounded-md bg-primary/10">
+                                  {content.type === 'video' ? (
+                                    <ExternalLink className="h-4 w-4 text-primary" />
+                                  ) : (
+                                    <BookOpen className="h-4 w-4 text-primary" />
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-medium">{content.title}</h3>
+                                  <p className="text-sm text-muted-foreground">{content.type} • {content.source}</p>
+                                </div>
+                              </div>
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link to={content.link}>
+                                  View
+                                </Link>
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   </section>
@@ -322,8 +382,8 @@ const Dashboard: React.FC = () => {
                         <div className="text-center py-8 text-muted-foreground">
                           <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
                           <p>You don't have any investments yet.</p>
-                          <Button className="mt-4">
-                            Browse Stocks
+                          <Button className="mt-4" asChild>
+                            <Link to="/stocks/AAPL">Browse Stocks</Link>
                           </Button>
                         </div>
                       )}
@@ -347,7 +407,9 @@ const Dashboard: React.FC = () => {
                       ) : (
                         <>
                           <p className="text-muted-foreground text-center py-8">You haven't added any stocks to your watchlist yet.</p>
-                          <Button className="w-full">Add Stocks to Watchlist</Button>
+                          <Button className="w-full" asChild>
+                            <Link to="/stocks/AAPL">Add Stocks to Watchlist</Link>
+                          </Button>
                         </>
                       )}
                     </CardContent>
@@ -407,7 +469,6 @@ const Dashboard: React.FC = () => {
           </div>
         </main>
         
-        {/* Modals */}
         <DepositModal 
           isOpen={isDepositModalOpen} 
           onClose={() => setIsDepositModalOpen(false)} 
