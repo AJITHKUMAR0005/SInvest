@@ -54,7 +54,7 @@ const Navigation = () => {
     <header className="fixed top-0 left-0 right-0 h-16 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto h-full flex items-center justify-between px-4">
         <div className="flex items-center">
-          <Link to="/" className="text-xl font-bold mr-8">TradeHub</Link>
+          <Link to="/" className="text-xl font-bold mr-8">SmartInvest</Link>
           
           {!isMobile && (
             <nav className="flex space-x-1">

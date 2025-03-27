@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DollarSign } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { DollarSign, CreditCard, Building, Wallet } from 'lucide-react';
 import { useAccount } from '@/hooks/use-account';
 
 interface DepositModalProps {
@@ -15,6 +16,7 @@ interface DepositModalProps {
 const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
   const [amount, setAmount] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const { depositFunds } = useAccount();
   const [error, setError] = useState('');
 
@@ -38,9 +40,12 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
     
     try {
+      // In a real app, we would pass the payment method to the backend
+      console.log(`Processing deposit with ${paymentMethod} payment method`);
       const { success } = await depositFunds(depositAmount);
       if (success) {
         setAmount('');
+        setPaymentMethod('card');
         onClose();
       }
     } finally {
@@ -69,6 +74,39 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <RadioGroup
+              value={paymentMethod}
+              onValueChange={setPaymentMethod}
+              className="grid grid-cols-1 gap-2"
+            >
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="card" id="card" />
+                <Label htmlFor="card" className="flex items-center cursor-pointer">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  <span>Credit/Debit Card</span>
+                </Label>
+              </div>
+              
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="bank" id="bank" />
+                <Label htmlFor="bank" className="flex items-center cursor-pointer">
+                  <Building className="w-4 h-4 mr-2" />
+                  <span>Bank Transfer</span>
+                </Label>
+              </div>
+              
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="wallet" id="wallet" />
+                <Label htmlFor="wallet" className="flex items-center cursor-pointer">
+                  <Wallet className="w-4 h-4 mr-2" />
+                  <span>Digital Wallet</span>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
         <DialogFooter>
