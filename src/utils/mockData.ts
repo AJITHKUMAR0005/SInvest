@@ -9,16 +9,16 @@ export interface Stock {
   marketCap: number;
   high52w: number;
   low52w: number;
-  yearHigh: number; // Added for StockDetails
-  yearLow: number; // Added for StockDetails
-  open: number; // Added for StockDetails
-  previousClose: number; // Added for MarketActions
-  dayHigh: number; // Added for StockDetails
-  dayLow: number; // Added for StockDetails
+  yearHigh: number; 
+  yearLow: number; 
+  open: number; 
+  previousClose: number; 
+  dayHigh: number; 
+  dayLow: number; 
   averageVolume: number;
   peRatio: number | null;
   dividend: number | null;
-  dividendYield: number; // Added for StockDetails
+  dividendYield: number;
   industry: string;
   logo: string;
   description: string;
@@ -37,7 +37,30 @@ export interface MarketIndex {
   changePercent: number;
 }
 
-// Mock stock data
+export const mockIndices: MarketIndex[] = [
+  {
+    id: "sp500",
+    name: "S&P 500",
+    value: 5021.84,
+    change: 15.29,
+    changePercent: 0.31
+  },
+  {
+    id: "nasdaq",
+    name: "NASDAQ",
+    value: 15990.66,
+    change: 87.36,
+    changePercent: 0.55
+  },
+  {
+    id: "djia",
+    name: "Dow Jones",
+    value: 38239.98,
+    change: -42.45,
+    changePercent: -0.11
+  }
+];
+
 export const mockStocks: Stock[] = [
   {
     id: "aapl",
@@ -241,17 +264,14 @@ export const mockStocks: Stock[] = [
   }
 ];
 
-// Function to get a stock by ID
 export const getStock = (id: string): Stock | undefined => {
   return mockStocks.find(stock => stock.id === id);
 };
 
-// Generate mock price history data based on a timeframe
 export const getMockChartData = (timeframe: string): PricePoint[] => {
   const today = new Date();
   const result: PricePoint[] = [];
   
-  // Determine number of data points based on timeframe
   let days;
   switch (timeframe) {
     case '1d':
@@ -270,12 +290,10 @@ export const getMockChartData = (timeframe: string): PricePoint[] => {
       days = 30; // Default to 1 month
   }
   
-  // Generate mock data points
   for (let i = days; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     
-    // Generate a random price between 150 and 200
     const price = 175 + (Math.random() - 0.5) * 50;
     
     result.push({
@@ -287,7 +305,28 @@ export const getMockChartData = (timeframe: string): PricePoint[] => {
   return result;
 };
 
-// Popular investment categories
+export const generateMockPriceHistory = (startValue: number, days: number): PricePoint[] => {
+  const today = new Date();
+  const result: PricePoint[] = [];
+  
+  let currentValue = startValue;
+  
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    
+    const randomChange = (Math.random() - 0.5) * 0.03;
+    currentValue = currentValue * (1 + randomChange);
+    
+    result.push({
+      date: date.toISOString().split('T')[0],
+      price: Number(currentValue.toFixed(2))
+    });
+  }
+  
+  return result;
+};
+
 export const investmentCategories = [
   { id: "tech", name: "Technology", icon: "💻" },
   { id: "healthcare", name: "Healthcare", icon: "🏥" },
@@ -297,7 +336,6 @@ export const investmentCategories = [
   { id: "real-estate", name: "Real Estate", icon: "🏢" }
 ];
 
-// Mock news items
 export const marketNews = [
   {
     id: "news1",
@@ -325,7 +363,6 @@ export const marketNews = [
   }
 ];
 
-// Mock user portfolio
 export const userPortfolio = {
   totalValue: 152743.86,
   cashBalance: 12567.34,
