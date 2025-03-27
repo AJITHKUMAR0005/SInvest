@@ -7,13 +7,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Home, LineChart, FileText, Settings, LogOut, User, Menu, Sun, Moon, UserCircle, BookOpen } from 'lucide-react';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
   const { settings, toggleDarkMode } = useUserSettings();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
