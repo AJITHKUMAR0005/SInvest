@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,8 +27,8 @@ const Market = () => {
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleItemSelect = (itemId: string) => {
-    navigate(`/stocks/${itemId}`);
+  const handleItemSelect = (id: string) => {
+    navigate(`/stocks/${id}`);
   };
 
   return (

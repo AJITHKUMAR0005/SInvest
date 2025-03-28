@@ -30,7 +30,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
   assetType
 }) => {
   const { toast } = useToast();
-  const { balance, depositFunds } = useAccount();
+  const { balance } = useAccount();
   const { 
     closeTradeModal, 
     tradeType, 
