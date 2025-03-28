@@ -15,7 +15,7 @@ interface MarketActionsProps {
 
 const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
   const { balance } = useAccount();
-  const { openTradeModal } = useTrade('stock', stock);
+  const { openTradeModal, isOpen, tradeType } = useTrade('stock', stock);
   
   const getAssetDetails = () => {
     return {
@@ -85,7 +85,7 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
         </CardFooter>
       </Card>
       
-      <TradeModal asset={stock} assetType="stock" />
+      <TradeModal asset={stock} assetType="stock" isOpen={isOpen} />
     </>
   );
 };

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockStocks, mockMutualFunds, mockDigitalGold } from '@/utils/mockData';
 import StockCard from '@/components/StockCard';
@@ -7,20 +8,11 @@ import MutualFundCard from '@/components/MutualFundCard';
 import DigitalGoldCard from '@/components/DigitalGoldCard';
 import MarketOverview from '@/components/MarketOverview';
 import AIRecommendations from '@/components/AIRecommendations';
-import ProductDetailCard from '@/components/ProductDetailCard';
 import MainLayout from '@/components/MainLayout';
-import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
-
-type ProductType = 'stock' | 'mutual_fund' | 'digital_gold';
-
-interface SelectedProduct {
-  product: Stock | MutualFund | DigitalGold;
-  type: ProductType;
-}
 
 const Market = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null);
+  const navigate = useNavigate();
   
   const filteredStocks = mockStocks.filter(stock => 
     stock.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -36,15 +28,8 @@ const Market = () => {
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleProductSelect = (product: Stock | MutualFund | DigitalGold, type: ProductType) => {
-    setSelectedProduct({
-      product,
-      type
-    });
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedProduct(null);
+  const handleStockSelect = (stockId: string) => {
+    navigate(`/stocks/${stockId}`);
   };
 
   return (
@@ -71,16 +56,6 @@ const Market = () => {
           />
         </div>
         
-        {selectedProduct && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <ProductDetailCard 
-              product={selectedProduct.product}
-              productType={selectedProduct.type}
-              onClose={handleCloseDetail}
-            />
-          </div>
-        )}
-        
         <Tabs defaultValue="stocks" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="stocks">Stocks</TabsTrigger>
@@ -93,7 +68,7 @@ const Market = () => {
               {filteredStocks.map(stock => (
                 <div 
                   key={stock.id} 
-                  onClick={() => handleProductSelect(stock, 'stock')}
+                  onClick={() => handleStockSelect(stock.id)}
                   className="cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <StockCard stock={stock} />
@@ -105,11 +80,7 @@ const Market = () => {
           <TabsContent value="mutual-funds" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMutualFunds.map(fund => (
-                <div 
-                  key={fund.id} 
-                  onClick={() => handleProductSelect(fund, 'mutual_fund')}
-                  className="cursor-pointer transition-transform hover:scale-[1.02]"
-                >
+                <div key={fund.id} className="cursor-pointer transition-transform hover:scale-[1.02]">
                   <MutualFundCard key={fund.id} fund={fund} />
                 </div>
               ))}
@@ -119,11 +90,7 @@ const Market = () => {
           <TabsContent value="digital-gold" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDigitalGold.map(gold => (
-                <div 
-                  key={gold.id} 
-                  onClick={() => handleProductSelect(gold, 'digital_gold')}
-                  className="cursor-pointer transition-transform hover:scale-[1.02]"
-                >
+                <div key={gold.id} className="cursor-pointer transition-transform hover:scale-[1.02]">
                   <DigitalGoldCard key={gold.id} gold={gold} />
                 </div>
               ))}

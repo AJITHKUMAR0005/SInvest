@@ -9,19 +9,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 import { useAccount } from '@/hooks/use-account';
 import { useTrade } from '@/hooks/use-trade';
 
-export type AssetType = 'stock' | 'mutualFund' | 'digitalGold';
+export type AssetType = 'stock' | 'mutual_fund' | 'digital_gold';
 
 export interface TradeModalProps {
   isOpen?: boolean;
@@ -38,14 +31,12 @@ const TradeModal: React.FC<TradeModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { balance, depositFunds } = useAccount();
-  const { closeTradeModal, tradeType } = useTrade(assetType as any, asset);
-  const [quantity, setQuantity] = useState('1');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { closeTradeModal, tradeType, executeTrade, shares, setShares, isSubmitting, totalCost } = useTrade(assetType as any, asset);
+  
   const getAssetName = (): string => {
     if (assetType === 'stock') {
       return `${(asset as Stock).name} (${(asset as Stock).ticker})`;
-    } else if (assetType === 'mutualFund') {
+    } else if (assetType === 'mutual_fund') {
       return `${(asset as MutualFund).name} (${(asset as MutualFund).ticker})`;
     } else {
       return (asset as DigitalGold).name;
@@ -53,7 +44,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
   };
 
   const getAssetPrice = (): number => {
-    if (assetType === 'stock' || assetType === 'mutualFund') {
+    if (assetType === 'stock' || assetType === 'mutual_fund') {
       return (asset as Stock | MutualFund).price;
     } else {
       return (asset as DigitalGold).pricePerGram;
@@ -62,57 +53,20 @@ const TradeModal: React.FC<TradeModalProps> = ({
 
   const getUnitLabel = (): string => {
     if (assetType === 'stock') return 'shares';
-    if (assetType === 'mutualFund') return 'units';
+    if (assetType === 'mutual_fund') return 'units';
     return 'grams';
   };
 
-  const getTotalPrice = (): number => {
-    const numericQuantity = parseFloat(quantity) || 0;
-    return numericQuantity * getAssetPrice();
-  };
-
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    const totalCost = getTotalPrice();
-
-    // Simulate API call
-    setTimeout(() => {
-      if (tradeType === 'buy') {
-        // Check if enough balance
-        if (balance && totalCost > balance.cash_balance) {
-          toast({
-            title: "Insufficient funds",
-            description: "You don't have enough balance to complete this transaction.",
-            variant: "destructive"
-          });
-          setIsSubmitting(false);
-          return;
-        }
-        
-        // Update balance
-        if (depositFunds) {
-          depositFunds(-totalCost);
-        }
-        
-        toast({
-          title: "Purchase successful",
-          description: `You have successfully purchased ${quantity} ${getUnitLabel()} of ${getAssetName()}.`,
-        });
-      } else {
-        // Update balance
-        if (depositFunds) {
-          depositFunds(totalCost);
-        }
-        
-        toast({
-          title: "Sale successful",
-          description: `You have successfully sold ${quantity} ${getUnitLabel()} of ${getAssetName()}.`,
-        });
-      }
-      
-      setIsSubmitting(false);
-      closeTradeModal();
-    }, 1000);
+  const handleSubmit = async () => {
+    const result = await executeTrade();
+    
+    if (!result.success && result.error) {
+      toast({
+        title: `${tradeType === 'buy' ? 'Purchase' : 'Sale'} failed`,
+        description: result.error,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -132,8 +86,8 @@ const TradeModal: React.FC<TradeModalProps> = ({
               <Input
                 id="quantity"
                 type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                value={shares}
+                onChange={(e) => setShares(e.target.value)}
                 min="0.01"
                 step="0.01"
                 className="flex-1"
@@ -149,7 +103,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <p className="text-sm font-medium col-span-2">Total Cost:</p>
-            <p className="col-span-2 font-semibold">${getTotalPrice().toLocaleString()}</p>
+            <p className="col-span-2 font-semibold">${totalCost.toLocaleString()}</p>
           </div>
           {balance && (
             <div className="grid grid-cols-4 items-center gap-4">
