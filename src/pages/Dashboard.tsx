@@ -495,7 +495,8 @@ const Dashboard: React.FC = () => {
           <TradeModal 
             isOpen={isTradeModalOpen}
             onClose={() => setIsTradeModalOpen(false)}
-            stock={selectedStock}
+            asset={selectedStock}
+            assetType="stock"
           />
         )}
       </div>

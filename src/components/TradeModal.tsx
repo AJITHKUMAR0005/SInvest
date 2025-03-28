@@ -16,7 +16,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/use-toast';
 import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 import { useAccount } from '@/hooks/use-account';
 import { useTrade } from '@/hooks/use-trade';
@@ -37,8 +37,8 @@ const TradeModal: React.FC<TradeModalProps> = ({
   assetType
 }) => {
   const { toast } = useToast();
-  const { balance, updateBalance } = useAccount();
-  const { closeTradeModal, tradeType } = useTrade();
+  const { balance, depositFunds } = useAccount();
+  const { closeTradeModal, tradeType } = useTrade(assetType as any, asset);
   const [quantity, setQuantity] = useState('1');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -90,8 +90,8 @@ const TradeModal: React.FC<TradeModalProps> = ({
         }
         
         // Update balance
-        if (updateBalance) {
-          updateBalance(balance ? balance.cash_balance - totalCost : 0);
+        if (depositFunds) {
+          depositFunds(-totalCost);
         }
         
         toast({
@@ -100,8 +100,8 @@ const TradeModal: React.FC<TradeModalProps> = ({
         });
       } else {
         // Update balance
-        if (updateBalance) {
-          updateBalance(balance ? balance.cash_balance + totalCost : 0);
+        if (depositFunds) {
+          depositFunds(totalCost);
         }
         
         toast({

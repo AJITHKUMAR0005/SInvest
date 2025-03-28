@@ -1,4 +1,3 @@
-
 export interface Stock {
   id: string;
   name: string;
@@ -30,8 +29,8 @@ export interface MutualFund {
   description: string;
   expenseRatio: number;
   yield: number;
-  riskLevel: string; // Added missing property
-  oneYearReturn: number; // Added missing property
+  riskLevel: string;
+  oneYearReturn: number;
 }
 
 export interface DigitalGold {
@@ -43,12 +42,13 @@ export interface DigitalGold {
   description: string;
   purity: string;
   storageFees: string;
-  minimumQuantity: number; // Added missing property
+  minimumQuantity: number;
 }
 
 export interface PricePoint {
-  time: number;
-  value: number;
+  date: string;
+  price: number;
+  volume?: number;
 }
 
 export interface MarketIndex {
@@ -300,7 +300,6 @@ export const mockDigitalGold: DigitalGold[] = [
   },
 ];
 
-// Add missing marketNews export
 export const marketNews = [
   {
     id: 1,
@@ -406,11 +405,11 @@ export const generateMockPriceHistory = (startValue: number, days: number) => {
   let currentValue = startValue;
   
   for (let i = 0; i < days; i++) {
-    const change = (Math.random() - 0.5) * startValue * 0.02; // Random change up to 2%
+    const change = (Math.random() - 0.5) * startValue * 0.02;
     currentValue += change;
     data.push({
-      time: i,
-      value: currentValue
+      date: new Date().toISOString(),
+      price: currentValue
     });
   }
   
@@ -422,7 +421,6 @@ export const getStock = (id: string) => {
 };
 
 export const getMockChartData = (timeframe: string) => {
-  // Generate fake chart data based on timeframe
   const dataPoints = timeframe === '1d' ? 24 : 
                      timeframe === '1w' ? 7 : 
                      timeframe === '1m' ? 30 : 365;
