@@ -14,6 +14,7 @@ import StockDetails from "./pages/StockDetails";
 import UserProfile from "./pages/UserProfile";
 import Learning from "./pages/Learning";
 import Market from "./pages/Market";
+import Payment from "./pages/Payment";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,11 @@ const App = () => (
               <Route path="/stocks/:id" element={
                 <ProtectedRoute>
                   <StockDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment" element={
+                <ProtectedRoute>
+                  <Payment />
                 </ProtectedRoute>
               } />
               <Route path="/profile" element={
