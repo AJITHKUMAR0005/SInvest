@@ -1,3 +1,4 @@
+
 export interface Stock {
   id: string;
   name: string;
@@ -29,6 +30,8 @@ export interface MutualFund {
   description: string;
   expenseRatio: number;
   yield: number;
+  riskLevel: string; // Added missing property
+  oneYearReturn: number; // Added missing property
 }
 
 export interface DigitalGold {
@@ -40,6 +43,20 @@ export interface DigitalGold {
   description: string;
   purity: string;
   storageFees: string;
+  minimumQuantity: number; // Added missing property
+}
+
+export interface PricePoint {
+  time: number;
+  value: number;
+}
+
+export interface MarketIndex {
+  id: number;
+  name: string;
+  value: number;
+  change: number;
+  changePercent: number;
 }
 
 export const mockStocks: Stock[] = [
@@ -216,6 +233,8 @@ export const mockMutualFunds: MutualFund[] = [
     description: 'The fund seeks to track the investment results of the S&P 500 Index.',
     expenseRatio: 0.0014,
     yield: 0.015,
+    riskLevel: 'Moderate',
+    oneYearReturn: 15.2,
   },
   {
     id: 'FXAIX',
@@ -227,6 +246,8 @@ export const mockMutualFunds: MutualFund[] = [
     description: 'The fund seeks to track the performance of the S&P 500 Index.',
     expenseRatio: 0.0015,
     yield: 0.016,
+    riskLevel: 'Moderate',
+    oneYearReturn: 14.8,
   },
   {
     id: 'PRIDX',
@@ -238,6 +259,8 @@ export const mockMutualFunds: MutualFund[] = [
     description: 'The fund invests in blue chip companies with above-average growth potential.',
     expenseRatio: 0.0062,
     yield: 0.005,
+    riskLevel: 'Moderate-High',
+    oneYearReturn: 18.2,
   },
 ];
 
@@ -251,6 +274,7 @@ export const mockDigitalGold: DigitalGold[] = [
     description: '24K 999 Purity Gold. Buy, Sell & Take Delivery of Gold Online.',
     purity: '99.99% Purity',
     storageFees: '₹0',
+    minimumQuantity: 0.01,
   },
   {
     id: 'DG2',
@@ -261,6 +285,7 @@ export const mockDigitalGold: DigitalGold[] = [
     description: 'Buy 24K gold online, assured purity. Insured & secured storage.',
     purity: '99.99% Purity',
     storageFees: '₹0',
+    minimumQuantity: 0.01,
   },
   {
     id: 'DG3',
@@ -271,7 +296,44 @@ export const mockDigitalGold: DigitalGold[] = [
     description: 'Buy, sell and store 24K gold securely with SafeGold.',
     purity: '99.5% Purity',
     storageFees: 'Included',
+    minimumQuantity: 0.005,
   },
+];
+
+// Add missing marketNews export
+export const marketNews = [
+  {
+    id: 1,
+    title: "Fed Signals Potential Rate Cut in Coming Months",
+    summary: "Federal Reserve officials indicated they could begin cutting interest rates in the coming months if inflation continues to cool, according to minutes from their latest meeting.",
+    source: "The Wall Street Journal",
+    time: "2 hours ago",
+    url: "#"
+  },
+  {
+    id: 2,
+    title: "Tech Stocks Rally as Earnings Beat Expectations",
+    summary: "Major technology companies reported better-than-expected quarterly earnings, driving the Nasdaq to new heights as investors remain bullish on AI prospects.",
+    source: "CNBC",
+    time: "5 hours ago",
+    url: "#"
+  },
+  {
+    id: 3,
+    title: "Oil Prices Rise Amid Middle East Tensions",
+    summary: "Crude oil prices increased by 3% today as geopolitical tensions in the Middle East raised concerns about potential supply disruptions.",
+    source: "Reuters",
+    time: "Yesterday",
+    url: "#"
+  },
+  {
+    id: 4,
+    title: "Retail Sales Show Unexpected Strength in April",
+    summary: "U.S. retail sales rose 0.7% in April, exceeding economists' forecasts and suggesting consumer spending remains resilient despite inflation pressures.",
+    source: "Bloomberg",
+    time: "Yesterday",
+    url: "#"
+  }
 ];
 
 export const aiRecommendationCategories = [
@@ -340,7 +402,7 @@ export const mockIndices = [
 ];
 
 export const generateMockPriceHistory = (startValue: number, days: number) => {
-  const data = [];
+  const data: PricePoint[] = [];
   let currentValue = startValue;
   
   for (let i = 0; i < days; i++) {

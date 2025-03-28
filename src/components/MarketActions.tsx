@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Stock } from '@/utils/mockData';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,6 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
   const { openTradeModal } = useTrade('stock', stock);
   
   const getAssetDetails = () => {
-    const stock = stock as Stock;
     return {
       name: stock.name,
       ticker: stock.ticker,
