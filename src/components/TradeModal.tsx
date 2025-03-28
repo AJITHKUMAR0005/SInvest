@@ -31,8 +31,24 @@ const TradeModal: React.FC<TradeModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { balance, depositFunds } = useAccount();
-  const { closeTradeModal, tradeType, executeTrade, shares, setShares, isSubmitting, totalCost } = useTrade(assetType as any, asset);
+  const { 
+    closeTradeModal, 
+    tradeType, 
+    executeTrade, 
+    shares, 
+    setShares, 
+    isSubmitting, 
+    totalCost 
+  } = useTrade(assetType as any, asset);
   
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      closeTradeModal();
+    }
+  };
+
   const getAssetName = (): string => {
     if (assetType === 'stock') {
       return `${(asset as Stock).name} (${(asset as Stock).ticker})`;
@@ -70,7 +86,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose || closeTradeModal}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
@@ -113,7 +129,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={closeTradeModal}>
+          <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
