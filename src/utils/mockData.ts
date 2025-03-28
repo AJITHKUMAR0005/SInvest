@@ -408,8 +408,9 @@ export const generateMockPriceHistory = (startValue: number, days: number) => {
     const change = (Math.random() - 0.5) * startValue * 0.02;
     currentValue += change;
     data.push({
-      date: new Date().toISOString(),
-      price: currentValue
+      date: new Date(Date.now() - (days - i) * 24 * 3600000).toISOString(),
+      price: currentValue,
+      volume: Math.floor(Math.random() * 1000000)
     });
   }
   
@@ -420,13 +421,14 @@ export const getStock = (id: string) => {
   return mockStocks.find(stock => stock.id === id);
 };
 
-export const getMockChartData = (timeframe: string) => {
+export const getMockChartData = (timeframe: string): PricePoint[] => {
   const dataPoints = timeframe === '1d' ? 24 : 
                      timeframe === '1w' ? 7 : 
                      timeframe === '1m' ? 30 : 365;
   
   return Array.from({ length: dataPoints }, (_, i) => ({
-    time: i,
-    value: 100 + Math.random() * 50 * Math.sin(i / 10)
+    date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
+    price: 100 + Math.random() * 50 * Math.sin(i / 10),
+    volume: Math.floor(Math.random() * 1000000)
   }));
 };

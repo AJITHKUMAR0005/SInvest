@@ -8,7 +8,7 @@ import Navigation from '@/components/Navigation';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import PriceChart from '@/components/PriceChart';
 import { useWatchlist } from '@/hooks/use-watchlist';
-import { Stock, mockStocks } from '@/utils/mockData';
+import { Stock, mockStocks, PricePoint } from '@/utils/mockData';
 import { Star, BookmarkPlus, BookmarkMinus, ArrowLeft, ExternalLink } from 'lucide-react';
 import MarketActions from '@/components/MarketActions';
 
@@ -17,15 +17,16 @@ const getStock = (id: string): Stock | undefined => {
   return mockStocks.find(stock => stock.id === id);
 };
 
-const getMockChartData = (timeframe: string) => {
+const getMockChartData = (timeframe: string): PricePoint[] => {
   // Generate fake chart data based on timeframe
   const dataPoints = timeframe === '1d' ? 24 : 
                      timeframe === '1w' ? 7 : 
                      timeframe === '1m' ? 30 : 365;
   
   return Array.from({ length: dataPoints }, (_, i) => ({
-    time: i,
-    value: 100 + Math.random() * 50 * Math.sin(i / 10)
+    date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
+    price: 100 + Math.random() * 50 * Math.sin(i / 10),
+    volume: Math.floor(Math.random() * 1000000)
   }));
 };
 
