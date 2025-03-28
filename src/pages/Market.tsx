@@ -28,8 +28,8 @@ const Market = () => {
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleStockSelect = (stockId: string) => {
-    navigate(`/stocks/${stockId}`);
+  const handleItemSelect = (itemId: string) => {
+    navigate(`/stocks/${itemId}`);
   };
 
   return (
@@ -68,7 +68,7 @@ const Market = () => {
               {filteredStocks.map(stock => (
                 <div 
                   key={stock.id} 
-                  onClick={() => handleStockSelect(stock.id)}
+                  onClick={() => handleItemSelect(stock.id)}
                   className="cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <StockCard stock={stock} />
@@ -80,7 +80,11 @@ const Market = () => {
           <TabsContent value="mutual-funds" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMutualFunds.map(fund => (
-                <div key={fund.id} className="cursor-pointer transition-transform hover:scale-[1.02]">
+                <div 
+                  key={fund.id} 
+                  onClick={() => handleItemSelect(fund.id)}
+                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                >
                   <MutualFundCard key={fund.id} fund={fund} />
                 </div>
               ))}
@@ -90,7 +94,11 @@ const Market = () => {
           <TabsContent value="digital-gold" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDigitalGold.map(gold => (
-                <div key={gold.id} className="cursor-pointer transition-transform hover:scale-[1.02]">
+                <div 
+                  key={gold.id} 
+                  onClick={() => handleItemSelect(gold.id)}
+                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                >
                   <DigitalGoldCard key={gold.id} gold={gold} />
                 </div>
               ))}
