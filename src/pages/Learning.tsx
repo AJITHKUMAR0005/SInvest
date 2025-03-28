@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, PlayCircle, BookOpen, Newspaper, Clock, ThumbsUp } from 'lucide-react';
-import Navigation from '@/components/Navigation';
+import MainLayout from '@/components/MainLayout';
 import AnimatedTransition from '@/components/AnimatedTransition';
 
 interface ResourceItem {
@@ -167,70 +166,66 @@ const Learning = () => {
   
   return (
     <AnimatedTransition>
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        
-        <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold">Learning Center</h1>
-              <p className="text-muted-foreground">
-                Educational resources to help you improve your trading knowledge and skills
-              </p>
-            </div>
-            
-            <Tabs defaultValue="all" className="space-y-6">
-              <TabsList>
-                <TabsTrigger value="all">All Resources</TabsTrigger>
-                <TabsTrigger value="videos">Videos</TabsTrigger>
-                <TabsTrigger value="articles">Articles</TabsTrigger>
-                <TabsTrigger value="beginner">Beginner</TabsTrigger>
-                <TabsTrigger value="advanced">Advanced</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="all">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {learningResources.map(resource => (
-                    <ResourceCard key={resource.id} resource={resource} />
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="videos">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {videos.map(resource => (
-                    <ResourceCard key={resource.id} resource={resource} />
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="articles">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {articles.map(resource => (
-                    <ResourceCard key={resource.id} resource={resource} />
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="beginner">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {learningResources.filter(r => r.level === 'beginner').map(resource => (
-                    <ResourceCard key={resource.id} resource={resource} />
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="advanced">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {learningResources.filter(r => r.level === 'advanced' || r.level === 'intermediate').map(resource => (
-                    <ResourceCard key={resource.id} resource={resource} />
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+      <MainLayout>
+        <div className="max-w-7xl mx-auto pt-8">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Learning Center</h1>
+            <p className="text-muted-foreground">
+              Educational resources to help you improve your trading knowledge and skills
+            </p>
           </div>
-        </main>
-      </div>
+          
+          <Tabs defaultValue="all" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="all">All Resources</TabsTrigger>
+              <TabsTrigger value="videos">Videos</TabsTrigger>
+              <TabsTrigger value="articles">Articles</TabsTrigger>
+              <TabsTrigger value="beginner">Beginner</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {learningResources.map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="videos">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {videos.map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="articles">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {articles.map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="beginner">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {learningResources.filter(r => r.level === 'beginner').map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="advanced">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {learningResources.filter(r => r.level === 'advanced' || r.level === 'intermediate').map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </MainLayout>
     </AnimatedTransition>
   );
 };

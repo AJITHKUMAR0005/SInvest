@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockStocks, generateMockPriceHistory } from '@/utils/mockData';
+import { mockStocks } from '@/utils/mockData';
 import StockCard from '@/components/StockCard';
 import PriceChart from '@/components/PriceChart';
 import MarketOverview from '@/components/MarketOverview';
@@ -18,6 +18,22 @@ import DepositModal from '@/components/DepositModal';
 import TradeModal from '@/components/TradeModal';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+
+const generateMockPriceHistory = (startValue: number, days: number) => {
+  const data = [];
+  let currentValue = startValue;
+  
+  for (let i = 0; i < days; i++) {
+    const change = (Math.random() - 0.5) * startValue * 0.02; // Random change up to 2%
+    currentValue += change;
+    data.push({
+      time: i,
+      value: currentValue
+    });
+  }
+  
+  return data;
+};
 
 const featuredLearningContent = [
   {
@@ -43,6 +59,7 @@ const Dashboard: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(mockStocks[0]);
   
   const popularStocks = mockStocks.slice(0, 4);
@@ -475,7 +492,11 @@ const Dashboard: React.FC = () => {
         />
         
         {selectedStock && (
-          <TradeModal stock={selectedStock} />
+          <TradeModal 
+            isOpen={isTradeModalOpen}
+            onClose={() => setIsTradeModalOpen(false)}
+            stock={selectedStock}
+          />
         )}
       </div>
     </AnimatedTransition>
