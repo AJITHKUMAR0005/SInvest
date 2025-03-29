@@ -67,36 +67,36 @@ const AIRecommendations: React.FC = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center">
-          <Bot className="mr-2 h-5 w-5" />
-          SmartInvest AI Advisor
+      <CardHeader className="p-3 pb-0">
+        <CardTitle className="flex items-center text-sm">
+          <Bot className="mr-1 h-4 w-4" />
+          AI Advisor
         </CardTitle>
-        <CardDescription>
-          Get personalized investment recommendations powered by GenAI
+        <CardDescription className="text-xs">
+          Get personalized investment advice
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 text-xs">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4 w-full">
-            <TabsTrigger value="chat" className="flex-1">
-              Chat Advisor
+          <TabsList className="mb-2 w-full h-7">
+            <TabsTrigger value="chat" className="flex-1 text-xs py-0.5">
+              Chat
             </TabsTrigger>
-            <TabsTrigger value="recommendations" className="flex-1">
-              AI Recommendations
+            <TabsTrigger value="recommendations" className="flex-1 text-xs py-0.5">
+              Recs
             </TabsTrigger>
-            <TabsTrigger value="personalized" className="flex-1">
-              <Sparkles className="h-4 w-4 mr-1" /> Personalized
+            <TabsTrigger value="personalized" className="flex-1 text-xs py-0.5">
+              <Sparkles className="h-3 w-3 mr-1" /> Custom
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="chat" className="space-y-4">
-            <div className="flex flex-col space-y-4">
+          <TabsContent value="chat" className="space-y-2 mt-1">
+            <div className="flex flex-col space-y-2">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Ask about investments..."
-                  className="w-full p-2 pr-10 border rounded-md"
+                  className="w-full p-1 pr-8 text-xs border rounded-md"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleQuerySubmit(query)}
@@ -104,161 +104,161 @@ const AIRecommendations: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="absolute right-1 top-1"
+                  className="absolute right-0 top-0 h-full w-6"
                   onClick={() => handleQuerySubmit(query)}
                   disabled={isLoading || !query.trim()}
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3 w-3" />
                 </Button>
               </div>
               
               {!showMore && (
-                <div className="flex flex-wrap gap-2">
-                  {predefinedQueries.slice(0, 3).map((q, index) => (
+                <div className="flex flex-wrap gap-1">
+                  {predefinedQueries.slice(0, 2).map((q, index) => (
                     <Button 
                       key={index} 
                       variant="outline" 
                       size="sm" 
-                      className="text-xs"
+                      className="text-xs h-6 px-2 py-0"
                       onClick={() => handleQuerySubmit(q)}
                     >
-                      {q}
+                      {q.length > 15 ? q.substring(0, 15) + '...' : q}
                     </Button>
                   ))}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs"
+                    className="text-xs h-6 px-2 py-0"
                     onClick={() => setShowMore(true)}
                   >
-                    <ChevronDown className="h-3 w-3 mr-1" /> More
+                    <ChevronDown className="h-3 w-3" />
                   </Button>
                 </div>
               )}
               
               {showMore && (
-                <div className="flex flex-wrap gap-2">
-                  {predefinedQueries.map((q, index) => (
+                <div className="flex flex-wrap gap-1">
+                  {predefinedQueries.slice(0, 4).map((q, index) => (
                     <Button 
                       key={index} 
                       variant="outline" 
                       size="sm" 
-                      className="text-xs"
+                      className="text-xs h-6 px-2 py-0"
                       onClick={() => handleQuerySubmit(q)}
                     >
-                      {q}
+                      {q.length > 15 ? q.substring(0, 15) + '...' : q}
                     </Button>
                   ))}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs"
+                    className="text-xs h-6 px-2 py-0"
                     onClick={() => setShowMore(false)}
                   >
-                    <ChevronUp className="h-3 w-3 mr-1" /> Less
+                    <ChevronUp className="h-3 w-3" />
                   </Button>
                 </div>
               )}
               
               {isLoading && (
-                <div className="p-4 border rounded-md">
+                <div className="p-2 border rounded-md">
                   <div className="flex items-center space-x-2">
-                    <div className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"></div>
+                    <div className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin"></div>
                     <span>Thinking...</span>
                   </div>
                 </div>
               )}
               
               {answer && !isLoading && (
-                <div className="p-4 border rounded-md bg-secondary/20">
-                  <p className="text-sm">{answer}</p>
+                <div className="p-2 border rounded-md bg-secondary/20">
+                  <p className="text-xs">{answer}</p>
                 </div>
               )}
             </div>
           </TabsContent>
           
-          <TabsContent value="recommendations" className="space-y-4">
-            <div className="space-y-3">
+          <TabsContent value="recommendations" className="space-y-2 mt-1">
+            <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
               {aiRecommendationCategories.map((category) => (
                 <div 
                   key={category.id} 
-                  className="p-3 border rounded-md hover:bg-secondary/20 cursor-pointer transition-colors"
+                  className="p-2 border rounded-md hover:bg-secondary/20 cursor-pointer transition-colors"
                   onClick={() => {
                     toast({
                       title: "Recommendation Applied",
-                      description: `${category.name} recommendations have been applied to your dashboard`,
+                      description: `${category.name} recommendations applied`,
                     });
                   }}
                 >
-                  <h3 className="font-medium">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground">{category.description}</p>
+                  <h3 className="font-medium text-xs">{category.name}</h3>
+                  <p className="text-xs text-muted-foreground">{category.description}</p>
                 </div>
               ))}
             </div>
           </TabsContent>
           
-          <TabsContent value="personalized" className="space-y-4">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Risk Tolerance</label>
+          <TabsContent value="personalized" className="space-y-2 mt-1">
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Risk Tolerance</label>
                   <Select value={riskTolerance} onValueChange={(value: 'low' | 'medium' | 'high') => setRiskTolerance(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select risk tolerance" />
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Select risk" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Conservative (Low Risk)</SelectItem>
-                      <SelectItem value="medium">Balanced (Medium Risk)</SelectItem>
-                      <SelectItem value="high">Aggressive (High Risk)</SelectItem>
+                      <SelectItem value="low">Conservative</SelectItem>
+                      <SelectItem value="medium">Balanced</SelectItem>
+                      <SelectItem value="high">Aggressive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Investment Horizon</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Investment Horizon</label>
                   <Select value={investmentHorizon} onValueChange={(value: 'short' | 'medium' | 'long') => setInvestmentHorizon(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select investment horizon" />
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Select horizon" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="short">Short-term (1-3 years)</SelectItem>
-                      <SelectItem value="medium">Medium-term (3-7 years)</SelectItem>
-                      <SelectItem value="long">Long-term (7+ years)</SelectItem>
+                      <SelectItem value="short">Short-term (1-3y)</SelectItem>
+                      <SelectItem value="medium">Medium-term (3-7y)</SelectItem>
+                      <SelectItem value="long">Long-term (7y+)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
               <Button 
-                className="w-full" 
+                className="w-full h-7 text-xs" 
                 onClick={generateRecommendations}
                 disabled={isGeneratingRecommendations}
               >
                 {isGeneratingRecommendations ? (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Generating Recommendations...
+                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                    Generating...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Generate Personalized Recommendations
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Get Recommendations
                   </>
                 )}
               </Button>
               
               {recommendations.length > 0 && (
-                <div className="space-y-3 mt-4">
-                  <h3 className="font-medium">Your Personalized Recommendations</h3>
+                <div className="space-y-2 mt-2 max-h-[120px] overflow-y-auto pr-1">
+                  <h3 className="font-medium text-xs">Your Recommendations</h3>
                   {recommendations.map((rec, index) => (
-                    <div key={index} className="p-3 border rounded-md bg-secondary/10">
+                    <div key={index} className="p-2 border rounded-md bg-secondary/10">
                       <div className="flex justify-between">
-                        <h4 className="font-medium">{rec.name}</h4>
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-                          {Math.round(rec.confidence * 100)}% match
+                        <h4 className="font-medium text-xs">{rec.name}</h4>
+                        <span className="text-[10px] bg-primary/20 text-primary px-1 rounded-full">
+                          {Math.round(rec.confidence * 100)}%
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{rec.description}</p>
                     </div>
                   ))}
                 </div>

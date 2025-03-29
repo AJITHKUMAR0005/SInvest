@@ -21,6 +21,7 @@ interface PriceChartProps {
   change?: number;
   compact?: boolean;
   timeframe?: string;
+  height?: number | string;
 }
 
 const timeRanges = ["1D", "1W", "1M", "3M", "6M", "1Y", "5Y"];
@@ -32,7 +33,8 @@ const PriceChart: React.FC<PriceChartProps> = ({
   ticker = "",
   change = 0,
   compact = false,
-  timeframe = "1M"
+  timeframe = "1M",
+  height
 }) => {
   const [selectedRange, setSelectedRange] = useState(timeframe.toUpperCase());
   const isPositive = change >= 0;
@@ -59,6 +61,9 @@ const PriceChart: React.FC<PriceChartProps> = ({
     }
     return null;
   };
+
+  // Determine chart height based on props or viewport
+  const chartHeight = height || (compact ? "180px" : "300px");
   
   return (
     <div className={cn("w-full flex flex-col", className)}>
@@ -75,7 +80,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
               </span>
             </div>
           </div>
-          <div className="flex space-x-1">
+          <div className="flex flex-wrap space-x-1">
             {timeRanges.map((range) => (
               <Button
                 key={range}
@@ -117,7 +122,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
         </div>
       )}
       
-      <div className={compact ? "h-[180px] w-full" : "h-[300px] w-full"}>
+      <div style={{ height: chartHeight }} className="w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsla(var(--border)/0.5)" />

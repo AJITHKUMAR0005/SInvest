@@ -35,7 +35,7 @@ const Navigation = () => {
     },
     { 
       name: 'Markets', 
-      path: '/stocks/AAPL', 
+      path: '/market', 
       icon: <LineChart className="h-4 w-4 mr-2" />
     },
     { 
