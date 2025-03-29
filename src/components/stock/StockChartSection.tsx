@@ -32,7 +32,7 @@ const StockChartSection: React.FC<StockChartSectionProps> = ({
     
     return Array.from({ length: dataPoints }, (_, i) => ({
       date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
-      price: 100 + Math.random() * 50 * Math.sin(i / 10),
+      price: stock.price + Math.random() * 50 * Math.sin(i / 10),
       volume: Math.floor(Math.random() * 1000000)
     }));
   };
@@ -71,7 +71,7 @@ const StockChartSection: React.FC<StockChartSectionProps> = ({
         <div className="h-[350px] w-full">
           <PriceChart 
             data={getMockChartData(timeframe)} 
-            ticker={stock.ticker}
+            symbol={stock.ticker}
             change={stock.change}
             timeframe={timeframe}
           />

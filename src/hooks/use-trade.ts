@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useInvestments } from '@/hooks/use-investments';
 import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 
-export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', asset: Stock | MutualFund | DigitalGold) => {
+export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', asset: Stock | MutualFund | DigitalGold | null) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [shares, setShares] = useState<string>('');
@@ -21,6 +21,10 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
   };
 
   const executeTrade = async () => {
+    if (!asset) {
+      return { success: false, error: 'No asset selected' };
+    }
+    
     if (!shares || isNaN(parseFloat(shares)) || parseFloat(shares) <= 0) {
       return { success: false, error: 'Invalid number of shares' };
     }
@@ -49,6 +53,7 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
 
   // Get ticker or identifier based on asset type
   const getAssetIdentifier = () => {
+    if (!asset) return '';
     if (assetType === 'stock') return (asset as Stock).ticker;
     if (assetType === 'mutual_fund') return (asset as MutualFund).ticker;
     if (assetType === 'digital_gold') return (asset as DigitalGold).id;
@@ -57,6 +62,7 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
 
   // Get price based on asset type
   const getAssetPrice = () => {
+    if (!asset) return 0;
     if (assetType === 'stock') return (asset as Stock).price;
     if (assetType === 'mutual_fund') return (asset as MutualFund).price;
     if (assetType === 'digital_gold') return (asset as DigitalGold).pricePerGram;
