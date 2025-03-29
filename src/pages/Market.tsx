@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +9,8 @@ import DigitalGoldCard from '@/components/DigitalGoldCard';
 import MarketOverview from '@/components/MarketOverview';
 import AIRecommendations from '@/components/AIRecommendations';
 import MainLayout from '@/components/MainLayout';
+import TradeModal from '@/components/TradeModal';
+import { useTrade } from '@/hooks/use-trade';
 
 const Market = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,7 +30,35 @@ const Market = () => {
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleItemSelect = (id: string) => {
+  // Create separate state for each asset type's selected item
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [selectedFund, setSelectedFund] = useState(null);
+  const [selectedGold, setSelectedGold] = useState(null);
+  
+  // Initialize trade hooks for each asset type
+  const { openTradeModal: openStockTradeModal, isOpen: isStockModalOpen, closeTradeModal: closeStockTradeModal } = 
+    useTrade('stock', selectedStock);
+  const { openTradeModal: openFundTradeModal, isOpen: isFundModalOpen, closeTradeModal: closeFundTradeModal } = 
+    useTrade('mutual_fund', selectedFund);
+  const { openTradeModal: openGoldTradeModal, isOpen: isGoldModalOpen, closeTradeModal: closeGoldTradeModal } = 
+    useTrade('digital_gold', selectedGold);
+
+  const handleStockClick = (stock) => {
+    setSelectedStock(stock);
+    openStockTradeModal('buy');
+  };
+
+  const handleFundClick = (fund) => {
+    setSelectedFund(fund);
+    openFundTradeModal('buy');
+  };
+
+  const handleGoldClick = (gold) => {
+    setSelectedGold(gold);
+    openGoldTradeModal('buy');
+  };
+
+  const handleDetailsClick = (id) => {
     navigate(`/stocks/${id}`);
   };
 
@@ -67,10 +98,22 @@ const Market = () => {
               {filteredStocks.map(stock => (
                 <div 
                   key={stock.id} 
-                  onClick={() => handleItemSelect(stock.id)}
-                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="cursor-pointer transition-transform hover:scale-[1.02] relative group"
                 >
-                  <StockCard stock={stock} />
+                  <div onClick={() => handleDetailsClick(stock.id)}>
+                    <StockCard stock={stock} />
+                  </div>
+                  <div 
+                    className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStockClick(stock);
+                    }}
+                  >
+                    <button className="bg-primary text-white px-4 py-2 rounded-md shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -81,10 +124,22 @@ const Market = () => {
               {filteredMutualFunds.map(fund => (
                 <div 
                   key={fund.id} 
-                  onClick={() => handleItemSelect(fund.id)}
-                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="cursor-pointer transition-transform hover:scale-[1.02] relative group"
                 >
-                  <MutualFundCard key={fund.id} fund={fund} />
+                  <div onClick={() => handleDetailsClick(fund.id)}>
+                    <MutualFundCard fund={fund} />
+                  </div>
+                  <div 
+                    className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFundClick(fund);
+                    }}
+                  >
+                    <button className="bg-primary text-white px-4 py-2 rounded-md shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -95,15 +150,55 @@ const Market = () => {
               {filteredDigitalGold.map(gold => (
                 <div 
                   key={gold.id} 
-                  onClick={() => handleItemSelect(gold.id)}
-                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="cursor-pointer transition-transform hover:scale-[1.02] relative group"
                 >
-                  <DigitalGoldCard key={gold.id} gold={gold} />
+                  <div onClick={() => handleDetailsClick(gold.id)}>
+                    <DigitalGoldCard gold={gold} />
+                  </div>
+                  <div 
+                    className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGoldClick(gold);
+                    }}
+                  >
+                    <button className="bg-primary text-white px-4 py-2 rounded-md shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Trade Modals */}
+        {selectedStock && (
+          <TradeModal 
+            asset={selectedStock} 
+            assetType="stock" 
+            isOpen={isStockModalOpen} 
+            onClose={closeStockTradeModal} 
+          />
+        )}
+        
+        {selectedFund && (
+          <TradeModal 
+            asset={selectedFund} 
+            assetType="mutual_fund" 
+            isOpen={isFundModalOpen} 
+            onClose={closeFundTradeModal} 
+          />
+        )}
+        
+        {selectedGold && (
+          <TradeModal 
+            asset={selectedGold} 
+            assetType="digital_gold" 
+            isOpen={isGoldModalOpen} 
+            onClose={closeGoldTradeModal} 
+          />
+        )}
       </div>
     </MainLayout>
   );
