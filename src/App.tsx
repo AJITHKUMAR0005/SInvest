@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import StockDetails from "./pages/StockDetails";
+import MutualFundDetails from "./pages/MutualFundDetails";
+import DigitalGoldDetails from "./pages/DigitalGoldDetails";
 import UserProfile from "./pages/UserProfile";
 import Learning from "./pages/Learning";
 import Market from "./pages/Market";
@@ -43,6 +45,16 @@ const App = () => (
               <Route path="/stocks/:id" element={
                 <ProtectedRoute>
                   <StockDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/mutual-funds/:id" element={
+                <ProtectedRoute>
+                  <MutualFundDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/digital-gold/:id" element={
+                <ProtectedRoute>
+                  <DigitalGoldDetails />
                 </ProtectedRoute>
               } />
               <Route path="/payment" element={

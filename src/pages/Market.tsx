@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,8 +28,14 @@ const Market = () => {
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleItemSelect = (id: string) => {
-    navigate(`/stocks/${id}`);
+  const handleItemSelect = (type: string, id: string) => {
+    if (type === 'stock') {
+      navigate(`/stocks/${id}`);
+    } else if (type === 'mutual_fund') {
+      navigate(`/mutual-funds/${id}`);
+    } else if (type === 'digital_gold') {
+      navigate(`/digital-gold/${id}`);
+    }
   };
 
   return (
@@ -67,7 +74,7 @@ const Market = () => {
               {filteredStocks.map(stock => (
                 <div 
                   key={stock.id} 
-                  onClick={() => handleItemSelect(stock.id)}
+                  onClick={() => handleItemSelect('stock', stock.id)}
                   className="cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <StockCard stock={stock} />
@@ -81,7 +88,7 @@ const Market = () => {
               {filteredMutualFunds.map(fund => (
                 <div 
                   key={fund.id} 
-                  onClick={() => handleItemSelect(fund.id)}
+                  onClick={() => handleItemSelect('mutual_fund', fund.id)}
                   className="cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <MutualFundCard key={fund.id} fund={fund} />
@@ -95,7 +102,7 @@ const Market = () => {
               {filteredDigitalGold.map(gold => (
                 <div 
                   key={gold.id} 
-                  onClick={() => handleItemSelect(gold.id)}
+                  onClick={() => handleItemSelect('digital_gold', gold.id)}
                   className="cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <DigitalGoldCard key={gold.id} gold={gold} />
