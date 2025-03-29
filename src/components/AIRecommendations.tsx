@@ -1,79 +1,272 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, CircleDollarSign, Star, TrendingUp, AlertCircle, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bot, Send, ChevronDown, ChevronUp, Sparkles, RefreshCw } from 'lucide-react';
+import { aiRecommendationCategories, predefinedQueries } from '@/utils/mockData';
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateAIResponse, getPersonalizedRecommendations } from '@/utils/genAI';
 
-const AIRecommendations = () => {
-  const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
-  
-  const predefinedQuestions = [
-    { id: 'beginner', text: 'What stocks are good for beginners?', icon: <BookOpen size={14} /> },
-    { id: 'dividend', text: 'Show me top dividend stocks', icon: <CircleDollarSign size={14} /> },
-    { id: 'tech', text: 'Best tech stocks to watch?', icon: <TrendingUp size={14} /> },
-    { id: 'mutual', text: 'Index funds vs active mutual funds?', icon: <Star size={14} /> },
-    { id: 'gold', text: 'Is digital gold a good investment?', icon: <AlertCircle size={14} /> },
-    { id: 'risk', text: 'How to diversify for lower risk?', icon: <BookOpen size={14} /> },
-    { id: 'inflation', text: 'Best investments during inflation', icon: <TrendingUp size={14} /> },
-    { id: 'retire', text: 'Early retirement portfolio strategy', icon: <Star size={14} /> }
-  ];
-  
-  const handleQuestionClick = (questionId: string) => {
-    setActiveQuestion(questionId === activeQuestion ? null : questionId);
-  };
-  
-  // Simulated AI responses to questions
-  const getAnswer = (questionId: string) => {
-    const answers: Record<string, string> = {
-      'beginner': 'For beginners, consider stable blue-chip stocks like Apple (AAPL), Microsoft (MSFT), or index ETFs like VOO which tracks the S&P 500. Start with small positions and focus on long-term growth.',
-      'dividend': 'Top dividend stocks include Johnson & Johnson (JNJ), Procter & Gamble (PG), and Coca-Cola (KO) with consistent dividend histories spanning decades.',
-      'tech': 'Watch NVIDIA (NVDA) for AI growth, Amazon (AMZN) for e-commerce/cloud, and Alphabet (GOOGL) for digital advertising and AI innovations.',
-      'mutual': 'Index funds offer lower fees and market returns, while active funds may outperform in certain markets but charge higher fees. For most investors, low-cost index funds provide better long-term results.',
-      'gold': 'Digital gold provides liquidity and ease of investment without storage concerns. Consider allocating 5-10% of your portfolio as a hedge against market volatility.',
-      'risk': 'Diversify across asset classes (stocks, bonds, real estate), industries, and geographies. Follow the rule of 100: subtract your age from 100 to determine your stock percentage.',
-      'inflation': 'During inflation, consider TIPS (Treasury Inflation-Protected Securities), real estate investments, commodities, and value stocks in consumer staples and utilities sectors.',
-      'retire': 'For early retirement, maximize tax-advantaged accounts, create multiple income streams, and consider a dividend growth strategy with a higher initial allocation to equities.'
-    };
+const AIRecommendations: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [activeTab, setActiveTab] = useState('chat');
+  const [riskTolerance, setRiskTolerance] = useState<'low' | 'medium' | 'high'>('medium');
+  const [investmentHorizon, setInvestmentHorizon] = useState<'short' | 'medium' | 'long'>('medium');
+  const [recommendations, setRecommendations] = useState<{ name: string; description: string; confidence: number }[]>([]);
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false);
+  const { toast } = useToast();
+
+  const handleQuerySubmit = async (input: string) => {
+    if (!input.trim()) return;
     
-    return answers[questionId] || 'I don\'t have a specific answer for this question yet.';
+    setIsLoading(true);
+    setQuery(input);
+    
+    try {
+      const response = await generateAIResponse(input);
+      setAnswer(response);
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      toast({
+        title: "AI Error",
+        description: "Failed to generate a response. Please try again.",
+        variant: "destructive",
+      });
+      setAnswer("I'm sorry, I'm having trouble processing your request right now. Please try again in a moment.");
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
+
+  const generateRecommendations = async () => {
+    setIsGeneratingRecommendations(true);
+    
+    try {
+      const results = await getPersonalizedRecommendations(riskTolerance, investmentHorizon);
+      setRecommendations(results);
+      toast({
+        title: "Recommendations Ready",
+        description: `Generated ${results.length} personalized recommendations for your profile.`,
+      });
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingRecommendations(false);
+    }
+  };
+
   return (
-    <Card className="bg-card">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">AI Investment Advisor</CardTitle>
-        <CardDescription>Get personalized investment advice</CardDescription>
+    <Card className="h-full">
+      <CardHeader className="p-3 pb-0">
+        <CardTitle className="flex items-center text-sm">
+          <Bot className="mr-1 h-4 w-4" />
+          AI Advisor
+        </CardTitle>
+        <CardDescription className="text-xs">
+          Get personalized investment advice
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2 p-4">
-        <div className="grid gap-2">
-          {predefinedQuestions.slice(0, activeQuestion ? 3 : 6).map((question) => (
-            <Button
-              key={question.id}
-              variant="outline"
-              className="justify-between h-auto py-2 px-3 text-left"
-              onClick={() => handleQuestionClick(question.id)}
-            >
-              <span className="flex items-center gap-2">
-                {question.icon}
-                <span className="text-xs font-medium">{question.text}</span>
-              </span>
-              <ArrowRight size={14} />
-            </Button>
-          ))}
-        </div>
-        
-        {activeQuestion && (
-          <div className="mt-3 p-3 bg-muted/50 rounded-lg text-xs">
-            <p className="font-semibold mb-1">Answer:</p>
-            <p>{getAnswer(activeQuestion)}</p>
-          </div>
-        )}
+      <CardContent className="p-3 text-xs">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-2 w-full h-7">
+            <TabsTrigger value="chat" className="flex-1 text-xs py-0.5">
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="flex-1 text-xs py-0.5">
+              Recs
+            </TabsTrigger>
+            <TabsTrigger value="personalized" className="flex-1 text-xs py-0.5">
+              <Sparkles className="h-3 w-3 mr-1" /> Custom
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="space-y-2 mt-1">
+            <div className="flex flex-col space-y-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Ask about investments..."
+                  className="w-full p-1 pr-8 text-xs border rounded-md"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleQuerySubmit(query)}
+                />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute right-0 top-0 h-full w-6"
+                  onClick={() => handleQuerySubmit(query)}
+                  disabled={isLoading || !query.trim()}
+                >
+                  <Send className="h-3 w-3" />
+                </Button>
+              </div>
+              
+              {!showMore && (
+                <div className="flex flex-wrap gap-1">
+                  {predefinedQueries.slice(0, 2).map((q, index) => (
+                    <Button 
+                      key={index} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs h-6 px-2 py-0"
+                      onClick={() => handleQuerySubmit(q)}
+                    >
+                      {q.length > 15 ? q.substring(0, 15) + '...' : q}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6 px-2 py-0"
+                    onClick={() => setShowMore(true)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              
+              {showMore && (
+                <div className="flex flex-wrap gap-1">
+                  {predefinedQueries.slice(0, 4).map((q, index) => (
+                    <Button 
+                      key={index} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs h-6 px-2 py-0"
+                      onClick={() => handleQuerySubmit(q)}
+                    >
+                      {q.length > 15 ? q.substring(0, 15) + '...' : q}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6 px-2 py-0"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              
+              {isLoading && (
+                <div className="p-2 border rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin"></div>
+                    <span>Thinking...</span>
+                  </div>
+                </div>
+              )}
+              
+              {answer && !isLoading && (
+                <div className="p-2 border rounded-md bg-secondary/20">
+                  <p className="text-xs">{answer}</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="recommendations" className="space-y-2 mt-1">
+            <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+              {aiRecommendationCategories.map((category) => (
+                <div 
+                  key={category.id} 
+                  className="p-2 border rounded-md hover:bg-secondary/20 cursor-pointer transition-colors"
+                  onClick={() => {
+                    toast({
+                      title: "Recommendation Applied",
+                      description: `${category.name} recommendations applied`,
+                    });
+                  }}
+                >
+                  <h3 className="font-medium text-xs">{category.name}</h3>
+                  <p className="text-xs text-muted-foreground">{category.description}</p>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="personalized" className="space-y-2 mt-1">
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Risk Tolerance</label>
+                  <Select value={riskTolerance} onValueChange={(value: 'low' | 'medium' | 'high') => setRiskTolerance(value)}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Select risk" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Conservative</SelectItem>
+                      <SelectItem value="medium">Balanced</SelectItem>
+                      <SelectItem value="high">Aggressive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Investment Horizon</label>
+                  <Select value={investmentHorizon} onValueChange={(value: 'short' | 'medium' | 'long') => setInvestmentHorizon(value)}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Select horizon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="short">Short-term (1-3y)</SelectItem>
+                      <SelectItem value="medium">Medium-term (3-7y)</SelectItem>
+                      <SelectItem value="long">Long-term (7y+)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full h-7 text-xs" 
+                onClick={generateRecommendations}
+                disabled={isGeneratingRecommendations}
+              >
+                {isGeneratingRecommendations ? (
+                  <>
+                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Get Recommendations
+                  </>
+                )}
+              </Button>
+              
+              {recommendations.length > 0 && (
+                <div className="space-y-2 mt-2 max-h-[120px] overflow-y-auto pr-1">
+                  <h3 className="font-medium text-xs">Your Recommendations</h3>
+                  {recommendations.map((rec, index) => (
+                    <div key={index} className="p-2 border rounded-md bg-secondary/10">
+                      <div className="flex justify-between">
+                        <h4 className="font-medium text-xs">{rec.name}</h4>
+                        <span className="text-[10px] bg-primary/20 text-primary px-1 rounded-full">
+                          {Math.round(rec.confidence * 100)}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{rec.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
-      <CardFooter className="pt-0">
-        <Button variant="link" className="text-xs h-8 p-0" size="sm">
-          Ask a custom question
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

@@ -1,118 +1,161 @@
 
-import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
+import { PricePoint } from '@/utils/mockData';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight } from 'lucide-react';
 
 interface PriceChartProps {
-  title?: string;
-  subtitle?: string;
-  data: any[];
-  height?: number;
+  data: PricePoint[];
+  color?: string;
   className?: string;
+  ticker?: string;
+  change?: number;
+  compact?: boolean;
+  timeframe?: string;
+  height?: number | string;
 }
 
+const timeRanges = ["1D", "1W", "1M", "3M", "6M", "1Y", "5Y"];
+
 const PriceChart: React.FC<PriceChartProps> = ({ 
-  title = "Portfolio Value", 
-  subtitle = "Last 30 days", 
-  data,
-  height = 300,
-  className
+  data, 
+  color = "hsl(var(--primary))", 
+  className,
+  ticker = "",
+  change = 0,
+  compact = false,
+  timeframe = "1M",
+  height
 }) => {
-  // Ensure data is valid before rendering
-  const validData = Array.isArray(data) && data.length > 0 ? data : [];
+  const [selectedRange, setSelectedRange] = useState(timeframe.toUpperCase());
+  const isPositive = change >= 0;
   
-  // Calculate min and max values for domain
-  const values = validData.map(item => item.value).filter(val => typeof val === 'number' && !isNaN(val));
-  const minValue = values.length > 0 ? Math.min(...values) * 0.95 : 0;
-  const maxValue = values.length > 0 ? Math.max(...values) * 1.05 : 100;
+  // Format numbers for display
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
   
-  // Is the trend positive?
-  const isPositive = values.length >= 2 && values[values.length - 1] >= values[0];
+  // Format dates for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+  
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-background/95 border border-border shadow-md rounded-lg backdrop-blur-sm text-xs">
+          <p className="text-xs text-foreground font-medium">{formatDate(label)}</p>
+          <p className="text-sm font-semibold">
+            {formatPrice(payload[0].value)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Determine chart height based on props or viewport
+  const chartHeight = height || (compact ? "180px" : "300px");
   
   return (
-    <Card className={className}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+    <div className={cn("w-full flex flex-col", className)}>
+      {!compact && (
+        <div className="flex justify-between items-center mb-1">
           <div>
-            <CardTitle className="text-lg">{title}</CardTitle>
-            <CardDescription>{subtitle}</CardDescription>
-          </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowUpRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div style={{ width: '100%', height: `${height}px` }}>
-          {validData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={validData}
-                margin={{ top: 5, right: 0, left: 0, bottom: 5 }}
-              >
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={isPositive ? "#16a34a" : "#dc2626"} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={isPositive ? "#16a34a" : "#dc2626"} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false}
-                  tickLine={false}
-                  tickMargin={10}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => {
-                    if (typeof value === 'string') {
-                      const date = new Date(value);
-                      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                    }
-                    return value;
-                  }}
-                />
-                <YAxis 
-                  domain={[minValue, maxValue]} 
-                  axisLine={false}
-                  tickLine={false}
-                  tickMargin={10}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => `$${value.toLocaleString()}`}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
-                  labelFormatter={(label) => {
-                    if (typeof label === 'string') {
-                      const date = new Date(label);
-                      return date.toLocaleDateString(undefined, { 
-                        weekday: 'short', 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      });
-                    }
-                    return label;
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke={isPositive ? "#16a34a" : "#dc2626"} 
-                  fillOpacity={1} 
-                  fill="url(#colorValue)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">No data available</p>
+            <h3 className="text-sm font-medium text-muted-foreground">{ticker} Price</h3>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-semibold">
+                {formatPrice(data[data.length - 1]?.price || 0)}
+              </span>
+              <span className={`text-sm ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                {isPositive ? '+' : ''}{change.toFixed(2)}
+              </span>
             </div>
-          )}
+          </div>
+          <div className="flex flex-wrap space-x-1">
+            {timeRanges.map((range) => (
+              <Button
+                key={range}
+                variant={selectedRange === range ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs px-2 py-1 h-7 ${selectedRange === range ? '' : 'text-muted-foreground'}`}
+                onClick={() => setSelectedRange(range)}
+              >
+                {range}
+              </Button>
+            ))}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+      
+      {compact && (
+        <div className="flex justify-between items-center mb-1">
+          <div className="flex items-baseline space-x-2">
+            <span className="text-base font-semibold">
+              {formatPrice(data[data.length - 1]?.price || 0)}
+            </span>
+            <span className={`text-xs ${isPositive ? 'text-success' : 'text-destructive'}`}>
+              {isPositive ? '+' : ''}{change.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex space-x-1">
+            {["1M", "1Y", "5Y"].map((range) => (
+              <Button
+                key={range}
+                variant={selectedRange === range ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs px-1.5 py-0.5 h-6 ${selectedRange === range ? '' : 'text-muted-foreground'}`}
+                onClick={() => setSelectedRange(range)}
+              >
+                {range}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div style={{ height: chartHeight }} className="w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsla(var(--border)/0.5)" />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={formatDate}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: compact ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
+              minTickGap={30}
+              height={compact ? 15 : 30}
+            />
+            <YAxis 
+              domain={['auto', 'auto']}
+              tickFormatter={formatPrice}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: compact ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
+              width={compact ? 40 : 60}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line 
+              type="monotone" 
+              dataKey="price" 
+              stroke={color} 
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: compact ? 4 : 6, fill: color, strokeWidth: 0 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 };
 
