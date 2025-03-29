@@ -1,15 +1,17 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockStocks, mockMutualFunds, mockDigitalGold } from '@/utils/mockData';
+import StockCard from '@/components/StockCard';
+import MutualFundCard from '@/components/MutualFundCard';
+import DigitalGoldCard from '@/components/DigitalGoldCard';
 import MarketOverview from '@/components/MarketOverview';
 import AIRecommendations from '@/components/AIRecommendations';
 import MainLayout from '@/components/MainLayout';
-import AssetCard from '@/components/AssetCard';
-import { Input } from '@/components/ui/input';
 
 const Market = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   
   const filteredStocks = mockStocks.filter(stock => 
     stock.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -24,6 +26,10 @@ const Market = () => {
   const filteredDigitalGold = mockDigitalGold.filter(gold => 
     gold.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleItemSelect = (id: string) => {
+    navigate(`/stocks/${id}`);
+  };
 
   return (
     <MainLayout>
@@ -40,10 +46,10 @@ const Market = () => {
         </div>
         
         <div className="mb-6">
-          <Input
+          <input
             type="text"
             placeholder="Search investments..."
-            className="w-full"
+            className="w-full p-2 border rounded-md"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -59,12 +65,13 @@ const Market = () => {
           <TabsContent value="stocks" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredStocks.map(stock => (
-                <AssetCard 
+                <div 
                   key={stock.id} 
-                  asset={stock}
-                  assetType="stock"
-                  className="transition-transform hover:scale-[1.02]"
-                />
+                  onClick={() => handleItemSelect(stock.id)}
+                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                >
+                  <StockCard stock={stock} />
+                </div>
               ))}
             </div>
           </TabsContent>
@@ -72,12 +79,13 @@ const Market = () => {
           <TabsContent value="mutual-funds" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMutualFunds.map(fund => (
-                <AssetCard 
+                <div 
                   key={fund.id} 
-                  asset={fund}
-                  assetType="mutual_fund"
-                  className="transition-transform hover:scale-[1.02]"
-                />
+                  onClick={() => handleItemSelect(fund.id)}
+                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                >
+                  <MutualFundCard key={fund.id} fund={fund} />
+                </div>
               ))}
             </div>
           </TabsContent>
@@ -85,12 +93,13 @@ const Market = () => {
           <TabsContent value="digital-gold" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDigitalGold.map(gold => (
-                <AssetCard 
+                <div 
                   key={gold.id} 
-                  asset={gold}
-                  assetType="digital_gold"
-                  className="transition-transform hover:scale-[1.02]"
-                />
+                  onClick={() => handleItemSelect(gold.id)}
+                  className="cursor-pointer transition-transform hover:scale-[1.02]"
+                >
+                  <DigitalGoldCard key={gold.id} gold={gold} />
+                </div>
               ))}
             </div>
           </TabsContent>
