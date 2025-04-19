@@ -21,13 +21,15 @@ export interface TradeModalProps {
   onClose?: () => void;
   asset: Stock | MutualFund | DigitalGold;
   assetType: AssetType;
+  tradeType?: 'buy' | 'sell';
 }
 
 const TradeModal: React.FC<TradeModalProps> = ({
   isOpen = false,
   onClose,
   asset,
-  assetType
+  assetType,
+  tradeType: initialTradeType
 }) => {
   const { toast } = useToast();
   const { balance } = useAccount();
@@ -85,18 +87,21 @@ const TradeModal: React.FC<TradeModalProps> = ({
     }
   };
 
+  // Use the explicitly passed trade type or fall back to the one from useTrade
+  const displayTradeType = initialTradeType || tradeType;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {tradeType === 'buy' ? 'Buy' : 'Sell'} {getAssetName()}
+            {displayTradeType === 'buy' ? 'Buy' : 'Sell'} {getAssetName()}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <p className="text-sm font-medium col-span-2">
-              {tradeType === 'buy' ? 'Purchase' : 'Sell'} Amount:
+              {displayTradeType === 'buy' ? 'Purchase' : 'Sell'} Amount:
             </p>
             <div className="col-span-2 flex gap-2">
               <Input
@@ -133,7 +138,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Processing...' : tradeType === 'buy' ? 'Buy' : 'Sell'}
+            {isSubmitting ? 'Processing...' : displayTradeType === 'buy' ? 'Buy' : 'Sell'}
           </Button>
         </DialogFooter>
       </DialogContent>

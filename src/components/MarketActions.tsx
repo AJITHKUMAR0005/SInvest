@@ -90,6 +90,7 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
         assetType="stock" 
         isOpen={isOpen} 
         onClose={closeTradeModal} 
+        tradeType={tradeType}
       />
     </>
   );
