@@ -18,7 +18,11 @@ export const useAccount = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchBalance = async () => {
-    if (!user) return;
+    if (!user) {
+      setBalance(null);
+      setIsLoading(false);
+      return;
+    }
     
     try {
       setIsLoading(true);
@@ -192,19 +196,24 @@ export const useAccount = () => {
     if (user) {
       fetchBalance();
       
-      // Set up realtime subscription
+      // Set up realtime subscription for balance updates
       const channel = supabase
         .channel('account_balance_changes')
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
+            event: '*',
             schema: 'public',
             table: 'account_balances',
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            setBalance(payload.new as AccountBalance);
+            console.log('Balance update received:', payload);
+            if (payload.eventType === 'DELETE') {
+              setBalance(null);
+            } else {
+              setBalance(payload.new as AccountBalance);
+            }
           }
         )
         .subscribe();

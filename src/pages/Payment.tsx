@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Landmark, DollarSign } from 'lucide-react';
@@ -25,7 +24,12 @@ const Payment = () => {
     name: '',
     number: '',
     expiry: '',
-    cvc: ''
+    cvc: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: ''
   });
   
   if (!product || !productType || !action) {
@@ -79,7 +83,21 @@ const Payment = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate processing
+    // Validate required fields
+    if (paymentMethod === 'card') {
+      if (!cardDetails.name || !cardDetails.number || !cardDetails.expiry || !cardDetails.cvc ||
+          !cardDetails.address || !cardDetails.city || !cardDetails.state || !cardDetails.zipCode) {
+        toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please fill in all required fields",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    
+    // Process payment
     setTimeout(() => {
       toast({
         title: `${action === 'buy' ? 'Purchase' : 'Sale'} Successful`,
@@ -187,7 +205,7 @@ const Payment = () => {
                     {paymentMethod === 'card' && (
                       <div className="space-y-4">
                         <div className="grid gap-2">
-                          <Label htmlFor="name">Name on Card</Label>
+                          <Label htmlFor="name">Name on Card *</Label>
                           <Input
                             id="name"
                             name="name"
@@ -199,7 +217,7 @@ const Payment = () => {
                         </div>
                         
                         <div className="grid gap-2">
-                          <Label htmlFor="number">Card Number</Label>
+                          <Label htmlFor="number">Card Number *</Label>
                           <Input
                             id="number"
                             name="number"
@@ -212,7 +230,7 @@ const Payment = () => {
                         
                         <div className="grid grid-cols-2 gap-4">
                           <div className="grid gap-2">
-                            <Label htmlFor="expiry">Expiry Date</Label>
+                            <Label htmlFor="expiry">Expiry Date *</Label>
                             <Input
                               id="expiry"
                               name="expiry"
@@ -223,7 +241,7 @@ const Payment = () => {
                             />
                           </div>
                           <div className="grid gap-2">
-                            <Label htmlFor="cvc">CVC</Label>
+                            <Label htmlFor="cvc">CVC *</Label>
                             <Input
                               id="cvc"
                               name="cvc"
@@ -232,6 +250,71 @@ const Payment = () => {
                               onChange={handleInputChange}
                               required
                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">Billing Address</h3>
+                          
+                          <div className="grid gap-2">
+                            <Label htmlFor="address">Street Address *</Label>
+                            <Input
+                              id="address"
+                              name="address"
+                              placeholder="123 Main St"
+                              value={cardDetails.address}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="city">City *</Label>
+                              <Input
+                                id="city"
+                                name="city"
+                                placeholder="New York"
+                                value={cardDetails.city}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="state">State *</Label>
+                              <Input
+                                id="state"
+                                name="state"
+                                placeholder="NY"
+                                value={cardDetails.state}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="zipCode">ZIP Code *</Label>
+                              <Input
+                                id="zipCode"
+                                name="zipCode"
+                                placeholder="10001"
+                                value={cardDetails.zipCode}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="country">Country</Label>
+                              <Input
+                                id="country"
+                                name="country"
+                                placeholder="United States"
+                                value={cardDetails.country}
+                                onChange={handleInputChange}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   LineChart, 
@@ -39,10 +38,8 @@ const PriceChart: React.FC<PriceChartProps> = ({
   const [selectedRange, setSelectedRange] = useState(timeframe.toUpperCase());
   const isPositive = change >= 0;
   
-  // Format numbers for display
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
   
-  // Format dates for display
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -62,25 +59,24 @@ const PriceChart: React.FC<PriceChartProps> = ({
     return null;
   };
 
-  // Determine chart height based on props or viewport
   const chartHeight = height || (compact ? "180px" : "300px");
   
   return (
     <div className={cn("w-full flex flex-col", className)}>
       {!compact && (
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2">
           <div>
             <h3 className="text-sm font-medium text-muted-foreground">{ticker} Price</h3>
             <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-semibold">
+              <span className="text-lg sm:text-2xl font-semibold">
                 {formatPrice(data[data.length - 1]?.price || 0)}
               </span>
-              <span className={`text-sm ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                {isPositive ? '+' : ''}{change.toFixed(2)}
+              <span className={`text-xs sm:text-sm ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                {isPositive ? '+' : ''}{change.toFixed(2)}%
               </span>
             </div>
           </div>
-          <div className="flex flex-wrap space-x-1">
+          <div className="flex flex-wrap gap-1">
             {timeRanges.map((range) => (
               <Button
                 key={range}
@@ -97,17 +93,17 @@ const PriceChart: React.FC<PriceChartProps> = ({
       )}
       
       {compact && (
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2">
           <div className="flex items-baseline space-x-2">
-            <span className="text-base font-semibold">
+            <span className="text-sm font-semibold">
               {formatPrice(data[data.length - 1]?.price || 0)}
             </span>
             <span className={`text-xs ${isPositive ? 'text-success' : 'text-destructive'}`}>
-              {isPositive ? '+' : ''}{change.toFixed(2)}
+              {isPositive ? '+' : ''}{change.toFixed(2)}%
             </span>
           </div>
-          <div className="flex space-x-1">
-            {["1M", "1Y", "5Y"].map((range) => (
+          <div className="flex gap-1">
+            {["1M", "1Y"].map((range) => (
               <Button
                 key={range}
                 variant={selectedRange === range ? "default" : "ghost"}
@@ -141,14 +137,14 @@ const PriceChart: React.FC<PriceChartProps> = ({
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: compact ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
-              width={compact ? 40 : 60}
+              width={compact ? 35 : 50}
             />
             <Tooltip content={<CustomTooltip />} />
             <Line 
               type="monotone" 
               dataKey="price" 
               stroke={color} 
-              strokeWidth={2}
+              strokeWidth={1.5}
               dot={false}
               activeDot={{ r: compact ? 4 : 6, fill: color, strokeWidth: 0 }}
             />
