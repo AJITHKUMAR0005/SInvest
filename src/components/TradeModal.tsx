@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -40,7 +40,8 @@ const TradeModal: React.FC<TradeModalProps> = ({
     shares, 
     setShares, 
     isSubmitting, 
-    totalCost 
+    totalCost,
+    ownedShares
   } = useTrade(assetType as any, asset);
   
   const handleClose = () => {
@@ -76,9 +77,24 @@ const TradeModal: React.FC<TradeModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (tradeType === 'sell' && parseFloat(shares) > ownedShares) {
+      toast({
+        variant: "destructive",
+        title: "Sale failed",
+        description: `You only own ${ownedShares} ${getUnitLabel()}`,
+      });
+      return;
+    }
+
     const result = await executeTrade();
     
-    if (!result.success && result.error) {
+    if (result.success) {
+      toast({
+        title: `${tradeType === 'buy' ? 'Purchase' : 'Sale'} successful`,
+        description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${shares} ${getUnitLabel()} of ${getAssetName()}`,
+      });
+      handleClose();
+    } else if (result.error) {
       toast({
         title: `${tradeType === 'buy' ? 'Purchase' : 'Sale'} failed`,
         description: result.error,
@@ -123,13 +139,20 @@ const TradeModal: React.FC<TradeModalProps> = ({
             <p className="col-span-2">${getAssetPrice().toLocaleString()}</p>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <p className="text-sm font-medium col-span-2">Total Cost:</p>
+            <p className="text-sm font-medium col-span-2">Total Value:</p>
             <p className="col-span-2 font-semibold">${totalCost.toLocaleString()}</p>
           </div>
           {balance && (
             <div className="grid grid-cols-4 items-center gap-4">
-              <p className="text-sm font-medium col-span-2">Available Balance:</p>
-              <p className="col-span-2">${balance.cash_balance.toLocaleString()}</p>
+              <p className="text-sm font-medium col-span-2">
+                {displayTradeType === 'buy' ? 'Available Balance' : 'Current Holdings'}:
+              </p>
+              <p className="col-span-2">
+                {displayTradeType === 'buy' 
+                  ? `$${balance.cash_balance.toLocaleString()}`
+                  : `${ownedShares} ${getUnitLabel()}`
+                }
+              </p>
             </div>
           )}
         </div>
@@ -137,7 +160,10 @@ const TradeModal: React.FC<TradeModalProps> = ({
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isSubmitting || (displayTradeType === 'sell' && parseFloat(shares) > ownedShares)}
+          >
             {isSubmitting ? 'Processing...' : displayTradeType === 'buy' ? 'Buy' : 'Sell'}
           </Button>
         </DialogFooter>
