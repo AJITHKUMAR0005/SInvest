@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockStocks } from '@/utils/mockData';
@@ -17,7 +18,6 @@ import { useTransactions } from '@/hooks/use-transactions';
 import DepositModal from '@/components/DepositModal';
 import TradeModal from '@/components/TradeModal';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
 
 const generateMockPriceHistory = (startValue: number, days: number) => {
   const data = [];
@@ -147,6 +147,8 @@ const Dashboard: React.FC = () => {
   
   const isLoading = isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
   
+  const navigate = useNavigate();
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -227,13 +229,9 @@ const Dashboard: React.FC = () => {
                           variant="default" 
                           size="sm"
                           className="flex-1"
-                          onClick={() => {
-                            const randomStock = mockStocks[Math.floor(Math.random() * mockStocks.length)];
-                            setSelectedStock(randomStock);
-                          }}
-                          asChild
+                          onClick={() => navigate('/market')}
                         >
-                          <Link to={`/stocks/${mockStocks[0].id}`}>Trade</Link>
+                          Trade
                         </Button>
                       </div>
                     </CardContent>
