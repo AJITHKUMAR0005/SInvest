@@ -32,8 +32,10 @@ const Index: React.FC = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                Learn More
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/learning">
+                  Learn More
+                </Link>
               </Button>
             </div>
           </div>
@@ -153,7 +155,7 @@ const Index: React.FC = () => {
                   </li>
                 </ul>
                 <Button className="mt-8" asChild>
-                  <Link to="/learn">
+                  <Link to="/learning">
                     Explore Learning Hub
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

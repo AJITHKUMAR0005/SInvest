@@ -90,7 +90,7 @@ const TradeModal: React.FC<TradeModalProps> = ({
     
     if (result.success) {
       toast({
-        title: `${tradeType === 'buy' ? 'Purchase' : 'Sale'} successful`,
+        title: tradeType === 'buy' ? 'Purchase successful' : 'Sale successful',
         description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${shares} ${getUnitLabel()} of ${getAssetName()}`,
       });
       handleClose();
