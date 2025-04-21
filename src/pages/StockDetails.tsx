@@ -60,7 +60,11 @@ const StockDetails = () => {
         
         <main className="container max-w-7xl mx-auto pt-24 pb-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate('/market')}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-2xl font-bold ml-2">{enhancedStock.name} ({enhancedStock.ticker})</h1>
@@ -86,3 +90,4 @@ const StockDetails = () => {
 };
 
 export default StockDetails;
+
