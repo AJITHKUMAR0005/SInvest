@@ -5,7 +5,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,6 +114,11 @@ const TradeModal: React.FC<TradeModalProps> = ({
           <DialogTitle>
             {displayTradeType === 'buy' ? 'Buy' : 'Sell'} {getAssetName()}
           </DialogTitle>
+          <DialogDescription>
+            {displayTradeType === 'buy' 
+              ? `Purchase ${getUnitLabel()} of ${getAssetName()}` 
+              : `Sell ${getUnitLabel()} of ${getAssetName()}`}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
