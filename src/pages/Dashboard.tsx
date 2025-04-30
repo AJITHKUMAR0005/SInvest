@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockStocks } from '@/utils/mockData';
 import StockCard from '@/components/StockCard';
-import PriceChart from '@/components/PriceChart';
 import MarketOverview from '@/components/MarketOverview';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -17,24 +16,12 @@ import { useInvestments } from '@/hooks/use-investments';
 import { useWatchlist } from '@/hooks/use-watchlist';
 import { useTransactions } from '@/hooks/use-transactions';
 import DepositModal from '@/components/DepositModal';
+import WithdrawModal from '@/components/WithdrawModal';
 import TradeModal from '@/components/TradeModal';
+import PortfolioValueChart from '@/components/PortfolioValueChart';
 import { format } from 'date-fns';
 
-const generateMockPriceHistory = (startValue: number, days: number) => {
-  const data = [];
-  let currentValue = startValue;
-  
-  for (let i = 0; i < days; i++) {
-    const change = (Math.random() - 0.5) * startValue * 0.02; // Random change up to 2%
-    currentValue += change;
-    data.push({
-      time: i,
-      value: currentValue
-    });
-  }
-  
-  return data;
-};
+
 
 const featuredLearningContent = [
   {
@@ -57,42 +44,37 @@ const Dashboard: React.FC = () => {
   const { investments, isLoading: isInvestmentsLoading } = useInvestments();
   const { watchlistStocks, isLoading: isWatchlistLoading } = useWatchlist();
   const { transactions, isLoading: isTransactionsLoading } = useTransactions();
-  
+
   const [activeTab, setActiveTab] = useState('overview');
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(mockStocks[0]);
-  
+
   const popularStocks = mockStocks.slice(0, 4);
-  
+
   const calculatePortfolioValue = () => {
     if (isInvestmentsLoading || isBalanceLoading) return 0;
-    
+
     const investmentsValue = investments.reduce((total, inv) => {
       const stock = mockStocks.find(s => s.ticker === inv.ticker);
       return total + (stock ? stock.price * inv.shares : 0);
     }, 0);
-    
+
     return (balance?.cash_balance || 0) + investmentsValue;
   };
-  
+
   const portfolioValue = calculatePortfolioValue();
-  
-  const [portfolioHistory, setPortfolioHistory] = useState(generateMockPriceHistory(10000, 30));
-  
+
   const dailyChange = popularStocks.reduce((sum, stock) => sum + stock.change, 0);
   const dailyChangePercent = ((dailyChange / (portfolioValue - dailyChange)) * 100).toFixed(2);
 
-  useEffect(() => {
-    setPortfolioHistory(generateMockPriceHistory(portfolioValue - 10000, 30));
-  }, [portfolioValue]);
-  
   const formatTransactions = transactions.map(tx => {
     let type = tx.type;
     let ticker = '';
     let shares = '';
     let price = '';
-    
+
     if (tx.description && (tx.type === 'buy' || tx.type === 'sell')) {
       const match = tx.description.match(/(\d+) shares of ([A-Z]+)/);
       if (match) {
@@ -101,7 +83,7 @@ const Dashboard: React.FC = () => {
       }
       price = `$${(tx.amount / parseFloat(shares || '1')).toFixed(2)}`;
     }
-    
+
     return {
       id: tx.id,
       type,
@@ -112,44 +94,44 @@ const Dashboard: React.FC = () => {
       amount: tx.amount,
     };
   });
-  
+
   const totalInvestmentValue = investments.reduce((total, inv) => {
     const stock = mockStocks.find(s => s.ticker === inv.ticker);
     return total + (stock ? stock.price * inv.shares : 0);
   }, 0);
-  
+
   const holdings = investments.map(inv => {
     const stock = mockStocks.find(s => s.ticker === inv.ticker);
     const value = stock ? stock.price * inv.shares : 0;
     const allocationPercentage = ((value / (totalInvestmentValue || 1)) * 100).toFixed(1);
-    
+
     return {
       ...inv,
       value,
       allocationPercentage,
     };
   }).sort((a, b) => b.value - a.value);
-  
+
   const getTopPerformer = () => {
     if (holdings.length === 0) return null;
-    
+
     return holdings.reduce((top, current) => {
       const currentStock = mockStocks.find(s => s.ticker === current.ticker);
       const topStock = mockStocks.find(s => s.ticker === top.ticker);
-      
+
       if (!currentStock || !topStock) return top;
-      
+
       return currentStock.changePercent > topStock.changePercent ? current : top;
     }, holdings[0]);
   };
-  
+
   const topPerformer = getTopPerformer();
   const topPerformerStock = topPerformer ? mockStocks.find(s => s.ticker === topPerformer.ticker) : null;
-  
+
   const isLoading = isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
-  
+
   const navigate = useNavigate();
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -157,12 +139,12 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <AnimatedTransition>
       <div className="min-h-screen bg-background">
         <Navigation />
-        
+
         <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col gap-6">
@@ -172,37 +154,18 @@ const Dashboard: React.FC = () => {
                   Here's what's happening with your investments today.
                 </p>
               </section>
-              
+
               <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="glass-panel col-span-1 md:col-span-2">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xl flex items-center">
-                      <Wallet className="mr-2 h-5 w-5 text-primary" />
-                      Portfolio Value
-                    </CardTitle>
-                    <CardDescription>
-                      Your investment performance
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-baseline mb-2">
-                      <h2 className="text-3xl font-bold">${portfolioValue.toLocaleString()}</h2>
-                      <span className={`ml-2 text-sm font-medium ${dailyChange >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {dailyChange >= 0 ? '+' : ''}{dailyChange.toLocaleString()} ({dailyChangePercent}%)
-                      </span>
-                    </div>
-                    
-                    <div className="h-[180px]">
-                      <PriceChart 
-                        data={portfolioHistory} 
-                        ticker="Portfolio" 
-                        change={dailyChange}
-                        compact={true}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-                
+                <div className="col-span-1 md:col-span-2">
+                  <PortfolioValueChart
+                    initialValue={10000} // Starting portfolio value
+                    currentValue={portfolioValue}
+                    change={dailyChange}
+                    changePercent={parseFloat(dailyChangePercent)}
+                    height="300px"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 gap-6">
                   <Card className="glass-panel">
                     <CardHeader className="pb-2">
@@ -217,17 +180,26 @@ const Dashboard: React.FC = () => {
                         <span className="text-sm text-muted-foreground">Available to invest</span>
                       </div>
                       <div className="flex gap-2 mt-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setIsDepositModalOpen(true)}
                           className="flex-1"
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Deposit
                         </Button>
-                        <Button 
-                          variant="default" 
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsWithdrawModalOpen(true)}
+                          className="flex-1"
+                        >
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Withdraw
+                        </Button>
+                        <Button
+                          variant="default"
                           size="sm"
                           className="flex-1"
                           onClick={() => navigate('/market')}
@@ -237,7 +209,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="glass-panel">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center">
@@ -254,7 +226,7 @@ const Dashboard: React.FC = () => {
                               {topPerformerStock.change >= 0 ? '+' : ''}${topPerformerStock.change.toFixed(2)} ({topPerformerStock.changePercent.toFixed(1)}%)
                             </div>
                           </div>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => {
                               setSelectedStock(topPerformerStock);
@@ -273,7 +245,7 @@ const Dashboard: React.FC = () => {
                   </Card>
                 </div>
               </section>
-              
+
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList className="bg-secondary/50 p-1">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -281,7 +253,7 @@ const Dashboard: React.FC = () => {
                   <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
                   <TabsTrigger value="activity">Activity</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="overview" className="space-y-6">
                   <section>
                     <div className="flex items-center justify-between mb-4">
@@ -293,14 +265,14 @@ const Dashboard: React.FC = () => {
                         </Link>
                       </Button>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {popularStocks.map(stock => (
                         <StockCard key={stock.id} stock={stock} />
                       ))}
                     </div>
                   </section>
-                  
+
                   <section>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold">Learning Resources</h2>
@@ -311,7 +283,7 @@ const Dashboard: React.FC = () => {
                         </Link>
                       </Button>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {featuredLearningContent.map((content, index) => (
                         <Card key={index} className="hover:bg-secondary/10 transition-colors">
@@ -341,10 +313,10 @@ const Dashboard: React.FC = () => {
                       ))}
                     </div>
                   </section>
-                  
+
                   <MarketOverview />
                 </TabsContent>
-                
+
                 <TabsContent value="portfolio" className="space-y-6">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -352,8 +324,8 @@ const Dashboard: React.FC = () => {
                         <CardTitle>Your Holdings</CardTitle>
                         <CardDescription>Current allocation of your portfolio</CardDescription>
                       </div>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => {
                           // Refresh data
@@ -406,7 +378,7 @@ const Dashboard: React.FC = () => {
                     </CardContent>
                   </Card>
                 </TabsContent>
-                
+
                 <TabsContent value="watchlist" className="space-y-6">
                   <Card>
                     <CardHeader>
@@ -431,7 +403,7 @@ const Dashboard: React.FC = () => {
                     </CardContent>
                   </Card>
                 </TabsContent>
-                
+
                 <TabsContent value="activity" className="space-y-6">
                   <Card>
                     <CardHeader>
@@ -445,9 +417,9 @@ const Dashboard: React.FC = () => {
                             <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                               <div className="flex items-center">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
-                                  tx.type === 'buy' ? 'bg-success/10 text-success' : 
-                                  tx.type === 'sell' ? 'bg-destructive/10 text-destructive' : 
-                                  tx.type === 'deposit' ? 'bg-primary/10 text-primary' : 
+                                  tx.type === 'buy' ? 'bg-success/10 text-success' :
+                                  tx.type === 'sell' ? 'bg-destructive/10 text-destructive' :
+                                  tx.type === 'deposit' ? 'bg-primary/10 text-primary' :
                                   'bg-secondary/80 text-muted-foreground'
                                 }`}>
                                   {tx.type === 'buy' ? '↑' : tx.type === 'sell' ? '↓' : tx.type === 'deposit' ? '+' : '-'}
@@ -484,14 +456,19 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </main>
-        
-        <DepositModal 
-          isOpen={isDepositModalOpen} 
-          onClose={() => setIsDepositModalOpen(false)} 
+
+        <DepositModal
+          isOpen={isDepositModalOpen}
+          onClose={() => setIsDepositModalOpen(false)}
         />
-        
+
+        <WithdrawModal
+          isOpen={isWithdrawModalOpen}
+          onClose={() => setIsWithdrawModalOpen(false)}
+        />
+
         {selectedStock && (
-          <TradeModal 
+          <TradeModal
             isOpen={isTradeModalOpen}
             onClose={() => setIsTradeModalOpen(false)}
             asset={selectedStock}

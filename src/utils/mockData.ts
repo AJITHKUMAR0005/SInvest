@@ -339,34 +339,48 @@ export const aiRecommendationCategories = [
   {
     id: '1',
     name: 'Beginner Investments',
-    description: 'Recommended for new investors with little to no experience.'
+    description: 'Recommended for new investors with little to no experience. Focus on simplicity, education, and long-term growth.'
   },
   {
     id: '2',
-    name: 'High Growth Stocks',
-    description: 'Stocks with high potential for growth, but also higher risk.'
+    name: 'High Growth Potential',
+    description: 'Investments with higher growth potential but also higher volatility. Suitable for those with higher risk tolerance.'
   },
   {
     id: '3',
     name: 'Retirement Planning',
-    description: 'Investments suitable for long-term retirement savings.'
+    description: 'Tax-advantaged investments suitable for long-term retirement savings with age-appropriate risk levels.'
   },
   {
     id: '4',
     name: 'Diversified Portfolio',
-    description: 'A mix of stocks, bonds, and other assets for balanced growth.'
+    description: 'A balanced mix of assets designed to optimize risk-adjusted returns through diversification across asset classes.'
+  },
+  {
+    id: '5',
+    name: 'Income Generation',
+    description: 'Investments focused on providing regular income through dividends, interest, or other distributions.'
+  },
+  {
+    id: '6',
+    name: 'Sustainable Investing',
+    description: 'Investments that consider environmental, social, and governance (ESG) factors alongside financial returns.'
   },
 ];
 
 export const predefinedQueries = [
-  "What are good beginner stocks?",
-  "How to diversify my portfolio?",
-  "Best mutual funds for long-term?",
-  "Should I invest in digital gold?",
-  "Investments with $1000?",
-  "Stocks vs mutual funds?",
-  "Investments for retirement?",
-  "Tax implications of selling stocks?"
+  "How should I start investing as a beginner?",
+  "Can you explain diversification and why it matters?",
+  "What are index funds and why are they recommended?",
+  "How do I build a retirement portfolio?",
+  "What's the relationship between risk and return?",
+  "How can I invest in a tax-efficient way?",
+  "What's a good asset allocation for my age?",
+  "How much should I be saving for retirement?",
+  "What are ETFs and how do they differ from mutual funds?",
+  "Can you explain dollar-cost averaging?",
+  "How do I analyze the current market conditions?",
+  "What are some strategies for investing during inflation?"
 ];
 
 export const mockIndices = [
@@ -403,7 +417,7 @@ export const mockIndices = [
 export const generateMockPriceHistory = (startValue: number, days: number) => {
   const data: PricePoint[] = [];
   let currentValue = startValue;
-  
+
   for (let i = 0; i < days; i++) {
     const change = (Math.random() - 0.5) * startValue * 0.02;
     currentValue += change;
@@ -413,7 +427,7 @@ export const generateMockPriceHistory = (startValue: number, days: number) => {
       volume: Math.floor(Math.random() * 1000000)
     });
   }
-  
+
   return data;
 };
 
@@ -422,10 +436,10 @@ export const getStock = (id: string) => {
 };
 
 export const getMockChartData = (timeframe: string): PricePoint[] => {
-  const dataPoints = timeframe === '1d' ? 24 : 
-                     timeframe === '1w' ? 7 : 
+  const dataPoints = timeframe === '1d' ? 24 :
+                     timeframe === '1w' ? 7 :
                      timeframe === '1m' ? 30 : 365;
-  
+
   return Array.from({ length: dataPoints }, (_, i) => ({
     date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
     price: 100 + Math.random() * 50 * Math.sin(i / 10),

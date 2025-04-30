@@ -1,9 +1,9 @@
 
-import React from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogDescription
@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Stock, MutualFund, DigitalGold } from '@/utils/mockData';
 import { useAccount } from '@/hooks/use-account';
 import { useTrade } from '@/hooks/use-trade';
+import PaymentMethodSelector, { PaymentMethod } from './PaymentMethodSelector';
+import { DollarSign, CreditCard, Building, Wallet, Smartphone, ShieldCheck } from 'lucide-react';
 
 export type AssetType = 'stock' | 'mutual_fund' | 'digital_gold';
 
@@ -34,17 +36,19 @@ const TradeModal: React.FC<TradeModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { balance } = useAccount();
-  const { 
-    closeTradeModal, 
-    tradeType, 
-    executeTrade, 
-    shares, 
-    setShares, 
-    isSubmitting, 
+  const {
+    closeTradeModal,
+    tradeType,
+    executeTrade,
+    shares,
+    setShares,
+    isSubmitting,
     totalCost,
     ownedShares
   } = useTrade(assetType as any, asset);
-  
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
+
   const handleClose = () => {
     if (onClose) {
       onClose();
@@ -78,7 +82,10 @@ const TradeModal: React.FC<TradeModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (tradeType === 'sell' && parseFloat(shares) > ownedShares) {
+    // Use the explicitly passed trade type or fall back to the one from useTrade
+    const displayTradeType = initialTradeType || tradeType;
+
+    if (displayTradeType === 'sell' && parseFloat(shares) > ownedShares) {
       toast({
         variant: "destructive",
         title: "Sale failed",
@@ -87,17 +94,18 @@ const TradeModal: React.FC<TradeModalProps> = ({
       return;
     }
 
-    const result = await executeTrade();
-    
+    // Pass the displayTradeType to ensure the correct operation is executed
+    const result = await executeTrade(displayTradeType);
+
     if (result.success) {
       toast({
-        title: tradeType === 'buy' ? 'Purchase successful' : 'Sale successful',
-        description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${shares} ${getUnitLabel()} of ${getAssetName()}`,
+        title: displayTradeType === 'buy' ? 'Purchase successful' : 'Sale successful',
+        description: `${displayTradeType === 'buy' ? 'Bought' : 'Sold'} ${shares} ${getUnitLabel()} of ${getAssetName()}`,
       });
       handleClose();
     } else if (result.error) {
       toast({
-        title: `${tradeType === 'buy' ? 'Purchase' : 'Sale'} failed`,
+        title: `${displayTradeType === 'buy' ? 'Purchase' : 'Sale'} failed`,
         description: result.error,
         variant: "destructive"
       });
@@ -109,14 +117,14 @@ const TradeModal: React.FC<TradeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {displayTradeType === 'buy' ? 'Buy' : 'Sell'} {getAssetName()}
           </DialogTitle>
           <DialogDescription>
-            {displayTradeType === 'buy' 
-              ? `Purchase ${getUnitLabel()} of ${getAssetName()}` 
+            {displayTradeType === 'buy'
+              ? `Purchase ${getUnitLabel()} of ${getAssetName()}`
               : `Sell ${getUnitLabel()} of ${getAssetName()}`}
           </DialogDescription>
         </DialogHeader>
@@ -154,20 +162,100 @@ const TradeModal: React.FC<TradeModalProps> = ({
                 {displayTradeType === 'buy' ? 'Available Balance' : 'Current Holdings'}:
               </p>
               <p className="col-span-2">
-                {displayTradeType === 'buy' 
+                {displayTradeType === 'buy'
                   ? `$${balance.cash_balance.toLocaleString()}`
                   : `${ownedShares} ${getUnitLabel()}`
                 }
               </p>
             </div>
           )}
+
+          <PaymentMethodSelector
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            title={displayTradeType === 'buy' ? "Payment Method" : "Withdrawal Method"}
+            description={displayTradeType === 'buy'
+              ? "Select how you would like to pay"
+              : "Select how you would like to receive your funds"}
+            amount={totalCost}
+            showSecurityInfo={true}
+            options={displayTradeType === 'buy' ? [
+              {
+                id: 'card',
+                label: 'Cash Balance',
+                icon: <DollarSign className="w-5 h-5 text-primary" />,
+                description: 'Use your available cash balance',
+                recommended: true,
+                securityInfo: 'Secure internal transfer',
+                processingTime: 'Instant',
+                fees: 'No fees'
+              },
+              {
+                id: 'bank',
+                label: 'Bank Transfer',
+                icon: <Building className="w-5 h-5 text-blue-600" />,
+                description: 'Direct debit from your bank account',
+                securityInfo: 'Bank-level security',
+                processingTime: '1-3 business days',
+                fees: 'No fees'
+              },
+              {
+                id: 'wallet',
+                label: 'Digital Wallet',
+                icon: <Wallet className="w-5 h-5 text-green-600" />,
+                description: 'Pay using your connected digital wallet',
+                securityInfo: 'Tokenized transactions',
+                processingTime: 'Instant',
+                fees: 'No fees',
+                brandLogos: ['gpay', 'paytm', 'phonepe']
+              },
+              {
+                id: 'upi',
+                label: 'UPI',
+                icon: <Smartphone className="w-5 h-5 text-purple-600" />,
+                description: 'Pay directly using UPI',
+                securityInfo: 'PIN protected',
+                processingTime: 'Instant',
+                fees: 'No fees'
+              }
+            ] : [
+              {
+                id: 'card',
+                label: 'Cash Balance',
+                icon: <DollarSign className="w-5 h-5 text-primary" />,
+                description: 'Add to your available cash balance',
+                recommended: true,
+                securityInfo: 'Secure internal transfer',
+                processingTime: 'Instant',
+                fees: 'No fees'
+              },
+              {
+                id: 'bank',
+                label: 'Bank Transfer',
+                icon: <Building className="w-5 h-5 text-blue-600" />,
+                description: 'Direct to your bank account',
+                securityInfo: 'Bank-level security',
+                processingTime: '1-3 business days',
+                fees: 'No fees'
+              },
+              {
+                id: 'wallet',
+                label: 'Digital Wallet',
+                icon: <Wallet className="w-5 h-5 text-green-600" />,
+                description: 'Transfer to your digital wallet',
+                securityInfo: 'Tokenized transactions',
+                processingTime: 'Instant',
+                fees: 'No fees'
+              }
+            ]}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isSubmitting || (displayTradeType === 'sell' && parseFloat(shares) > ownedShares)}
           >
             {isSubmitting ? 'Processing...' : displayTradeType === 'buy' ? 'Buy' : 'Sell'}

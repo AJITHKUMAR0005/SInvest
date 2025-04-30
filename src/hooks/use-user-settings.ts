@@ -12,6 +12,12 @@ export interface UserSettings {
     price_alerts: boolean;
     order_updates: boolean;
     market_news: boolean;
+    kyc_data?: {
+      verified: boolean;
+      pan_number: string;
+      mobile_number: string;
+      verified_at: string;
+    };
   };
   created_at: string;
   updated_at: string;
@@ -24,7 +30,7 @@ export const useUserSettings = () => {
 
   const fetchSettings = async () => {
     if (!user) return;
-    
+
     try {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -44,7 +50,7 @@ export const useUserSettings = () => {
         order_updates: true,
         market_news: true
       };
-      
+
       // Try to parse the notification_preferences if it's a string
       if (typeof data.notification_preferences === 'string') {
         try {
@@ -70,7 +76,7 @@ export const useUserSettings = () => {
       };
 
       setSettings(userSettings);
-      
+
       // Apply dark mode setting
       if (userSettings.dark_mode) {
         document.documentElement.classList.add('dark');
@@ -86,7 +92,7 @@ export const useUserSettings = () => {
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     if (!user || !settings) return { success: false };
-    
+
     try {
       const { error } = await supabase
         .from('user_settings')
@@ -112,7 +118,7 @@ export const useUserSettings = () => {
         ...newSettings,
         updated_at: new Date().toISOString(),
       });
-      
+
       // Apply dark mode setting if changed
       if (newSettings.dark_mode !== undefined) {
         if (newSettings.dark_mode) {
@@ -126,7 +132,7 @@ export const useUserSettings = () => {
         title: "Settings updated",
         description: "Your preferences have been saved",
       });
-      
+
       return { success: true };
     } catch (error) {
       console.error('Update settings error:', error);

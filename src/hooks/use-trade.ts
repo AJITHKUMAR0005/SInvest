@@ -20,7 +20,7 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
     setIsOpen(false);
   };
 
-  const executeTrade = async () => {
+  const executeTrade = async (overrideTradeType?: 'buy' | 'sell') => {
     if (!shares || isNaN(parseFloat(shares)) || parseFloat(shares) <= 0) {
       return { success: false, error: 'Invalid number of shares' };
     }
@@ -30,21 +30,24 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const shareCount = parseFloat(shares);
       let result;
-      
-      if (tradeType === 'buy') {
+
+      // Use the override trade type if provided, otherwise use the state value
+      const effectiveTradeType = overrideTradeType || tradeType;
+
+      if (effectiveTradeType === 'buy') {
         result = await buyAsset(asset, shareCount, assetType);
       } else {
         result = await sellAsset(asset, shareCount, assetType);
       }
-      
+
       if (result.success) {
         closeTradeModal();
       }
-      
+
       return result;
     } finally {
       setIsSubmitting(false);
@@ -70,8 +73,8 @@ export const useTrade = (assetType: 'stock' | 'mutual_fund' | 'digital_gold', as
   };
 
   // Calculate owned shares/units
-  const ownedInvestment = investments.find(inv => 
-    inv.ticker === getAssetIdentifier() && 
+  const ownedInvestment = investments.find(inv =>
+    inv.ticker === getAssetIdentifier() &&
     inv.asset_type === assetType
   );
   const ownedShares = ownedInvestment?.shares || 0;
