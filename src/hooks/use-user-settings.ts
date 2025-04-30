@@ -12,12 +12,12 @@ export interface UserSettings {
     price_alerts: boolean;
     order_updates: boolean;
     market_news: boolean;
-    kyc_data?: {
-      verified: boolean;
-      pan_number: string;
-      mobile_number: string;
-      verified_at: string;
-    };
+  };
+  kyc_data?: {
+    verified: boolean;
+    pan_number: string;
+    mobile_number: string;
+    verified_at: string;
   };
   created_at: string;
   updated_at: string;
@@ -54,7 +54,15 @@ export const useUserSettings = () => {
       // Try to parse the notification_preferences if it's a string
       if (typeof data.notification_preferences === 'string') {
         try {
-          notificationPrefs = JSON.parse(data.notification_preferences);
+          const parsedPrefs = JSON.parse(data.notification_preferences);
+          // Ensure we have the expected structure but preserve any additional fields
+          notificationPrefs = {
+            price_alerts: parsedPrefs.price_alerts !== undefined ? Boolean(parsedPrefs.price_alerts) : true,
+            order_updates: parsedPrefs.order_updates !== undefined ? Boolean(parsedPrefs.order_updates) : true,
+            market_news: parsedPrefs.market_news !== undefined ? Boolean(parsedPrefs.market_news) : true,
+            // Preserve kyc_data if it exists
+            ...(parsedPrefs.kyc_data ? { kyc_data: parsedPrefs.kyc_data } : {})
+          };
         } catch (e) {
           console.error('Error parsing notification preferences:', e);
         }
@@ -64,7 +72,9 @@ export const useUserSettings = () => {
         notificationPrefs = {
           price_alerts: prefs.price_alerts !== undefined ? Boolean(prefs.price_alerts) : true,
           order_updates: prefs.order_updates !== undefined ? Boolean(prefs.order_updates) : true,
-          market_news: prefs.market_news !== undefined ? Boolean(prefs.market_news) : true
+          market_news: prefs.market_news !== undefined ? Boolean(prefs.market_news) : true,
+          // Preserve kyc_data if it exists
+          ...(prefs.kyc_data ? { kyc_data: prefs.kyc_data } : {})
         };
       }
 
@@ -74,6 +84,9 @@ export const useUserSettings = () => {
         dark_mode: data.dark_mode === true, // ensure boolean
         notification_preferences: notificationPrefs
       };
+
+      console.log('User settings loaded:', userSettings);
+      console.log('KYC data:', userSettings.notification_preferences.kyc_data);
 
       setSettings(userSettings);
 
@@ -93,13 +106,20 @@ export const useUserSettings = () => {
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     if (!user || !settings) return { success: false };
 
+    console.log('Updating settings with:', newSettings);
+
     try {
+      // Prepare the update data
+      const updateData = {
+        ...newSettings,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log('Update data being sent to Supabase:', updateData);
+
       const { error } = await supabase
         .from('user_settings')
-        .update({
-          ...newSettings,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) {
@@ -113,11 +133,14 @@ export const useUserSettings = () => {
       }
 
       // Update local state
-      setSettings({
+      const updatedSettings = {
         ...settings,
         ...newSettings,
         updated_at: new Date().toISOString(),
-      });
+      };
+
+      console.log('Updated settings in local state:', updatedSettings);
+      setSettings(updatedSettings);
 
       // Apply dark mode setting if changed
       if (newSettings.dark_mode !== undefined) {

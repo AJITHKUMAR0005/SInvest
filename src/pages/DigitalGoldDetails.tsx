@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   Card,
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,18 +16,19 @@ import { mockDigitalGold, generateMockPriceHistory, PricePoint } from '@/utils/m
 import { useTrade } from '@/hooks/use-trade';
 import TradeModal from '@/components/TradeModal';
 import { ArrowLeft, Award, DollarSign, Scale, Package } from 'lucide-react';
+import WatchlistButton from '@/components/WatchlistButton';
 
 const DigitalGoldDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const gold = mockDigitalGold.find(gold => gold.id === id);
   const [timeframe, setTimeframe] = useState('1m');
-  
+
   const { isOpen, openTradeModal, closeTradeModal } = useTrade(
-    'digital_gold', 
+    'digital_gold',
     gold || mockDigitalGold[0]
   );
-  
+
   if (!gold) {
     return (
       <MainLayout>
@@ -43,13 +44,13 @@ const DigitalGoldDetails = () => {
       </MainLayout>
     );
   }
-  
+
   const getMockChartData = (timeframe: string): PricePoint[] => {
     // Generate fake chart data based on timeframe
-    const dataPoints = timeframe === '1d' ? 24 : 
-                      timeframe === '1w' ? 7 : 
+    const dataPoints = timeframe === '1d' ? 24 :
+                      timeframe === '1w' ? 7 :
                       timeframe === '1m' ? 30 : 365;
-    
+
     return Array.from({ length: dataPoints }, (_, i) => ({
       date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
       price: gold.pricePerGram * (0.95 + 0.1 * Math.sin(i / 10)),
@@ -60,14 +61,14 @@ const DigitalGoldDetails = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-6">
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
+        <Button
+          variant="ghost"
+          className="mb-4"
           onClick={() => navigate('/market')}
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Market
         </Button>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -86,7 +87,7 @@ const DigitalGoldDetails = () => {
                 </div>
               </CardHeader>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
@@ -107,8 +108,8 @@ const DigitalGoldDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-[350px] w-full">
-                  <PriceChart 
-                    data={getMockChartData(timeframe)} 
+                  <PriceChart
+                    data={getMockChartData(timeframe)}
                     ticker="Gold"
                     change={gold.change}
                     timeframe={timeframe}
@@ -116,7 +117,7 @@ const DigitalGoldDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>About {gold.name}</CardTitle>
@@ -126,7 +127,7 @@ const DigitalGoldDetails = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -156,34 +157,41 @@ const DigitalGoldDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Trade</CardTitle>
                 <CardDescription>Buy or sell digital gold</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    onClick={() => openTradeModal('buy')} 
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <Button
+                    onClick={() => openTradeModal('buy')}
                     className="w-full"
                   >
                     Buy
                   </Button>
-                  <Button 
-                    onClick={() => openTradeModal('sell')} 
-                    variant="outline" 
+                  <Button
+                    onClick={() => openTradeModal('sell')}
+                    variant="outline"
                     className="w-full"
                   >
                     Sell
                   </Button>
                 </div>
+                <div className="flex items-center justify-center">
+                  <WatchlistButton
+                    ticker={gold.id}
+                    variant="outline"
+                    showText={true}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-        
-        <TradeModal 
+
+        <TradeModal
           asset={gold}
           assetType="digital_gold"
           isOpen={isOpen}

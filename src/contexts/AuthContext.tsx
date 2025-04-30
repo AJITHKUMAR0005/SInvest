@@ -9,7 +9,7 @@ interface AuthContextProps {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string) => Promise<{
+  signUp: (email: string, password: string, username?: string) => Promise<{
     error: Error | null;
     data: any | null;
   }>;
@@ -50,11 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, username?: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username: username || email.split('@')[0], // Use username or fallback to email prefix
+          },
+        },
       });
 
       if (error) {
@@ -66,11 +71,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error, data: null };
       }
 
+      // If signup is successful, also create a profile entry
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            username: username || email.split('@')[0],
+            email: email,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+      }
+
       toast({
         title: "Account created",
         description: "Please check your email to verify your account",
       });
-      
+
       return { data, error: null };
     } catch (error) {
       toast({
@@ -98,11 +120,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error, data: null };
       }
 
+      // Check if this is the first sign-in
+      const isFirstSignIn = !data.user?.user_metadata?.last_sign_in_at;
+
       toast({
-        title: "Welcome back",
+        title: isFirstSignIn ? "Welcome" : "Welcome back",
         description: "Successfully signed in",
       });
-      
+
       navigate('/dashboard');
       return { data, error: null };
     } catch (error) {

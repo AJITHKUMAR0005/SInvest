@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   Card,
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,18 +16,19 @@ import { mockMutualFunds, generateMockPriceHistory, PricePoint } from '@/utils/m
 import { useTrade } from '@/hooks/use-trade';
 import TradeModal from '@/components/TradeModal';
 import { ArrowLeft, Percent, BarChart2, DollarSign } from 'lucide-react';
+import WatchlistButton from '@/components/WatchlistButton';
 
 const MutualFundDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const fund = mockMutualFunds.find(fund => fund.id === id);
   const [timeframe, setTimeframe] = useState('1m');
-  
+
   const { isOpen, openTradeModal, closeTradeModal } = useTrade(
-    'mutual_fund', 
+    'mutual_fund',
     fund || mockMutualFunds[0]
   );
-  
+
   if (!fund) {
     return (
       <MainLayout>
@@ -43,13 +44,13 @@ const MutualFundDetails = () => {
       </MainLayout>
     );
   }
-  
+
   const getMockChartData = (timeframe: string): PricePoint[] => {
     // Generate fake chart data based on timeframe
-    const dataPoints = timeframe === '1d' ? 24 : 
-                      timeframe === '1w' ? 7 : 
+    const dataPoints = timeframe === '1d' ? 24 :
+                      timeframe === '1w' ? 7 :
                       timeframe === '1m' ? 30 : 365;
-    
+
     return Array.from({ length: dataPoints }, (_, i) => ({
       date: new Date(Date.now() - (dataPoints - i) * 3600000).toISOString(),
       price: fund.price * (0.95 + 0.1 * Math.sin(i / 10)),
@@ -60,14 +61,14 @@ const MutualFundDetails = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-6">
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
+        <Button
+          variant="ghost"
+          className="mb-4"
           onClick={() => navigate('/market')}
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Market
         </Button>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -86,7 +87,7 @@ const MutualFundDetails = () => {
                 </div>
               </CardHeader>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
@@ -107,8 +108,8 @@ const MutualFundDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-[350px] w-full">
-                  <PriceChart 
-                    data={getMockChartData(timeframe)} 
+                  <PriceChart
+                    data={getMockChartData(timeframe)}
                     ticker={fund.ticker}
                     change={fund.change}
                     timeframe={timeframe}
@@ -116,7 +117,7 @@ const MutualFundDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>About {fund.name}</CardTitle>
@@ -126,7 +127,7 @@ const MutualFundDetails = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -163,34 +164,41 @@ const MutualFundDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Trade</CardTitle>
                 <CardDescription>Buy or sell units of this mutual fund</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    onClick={() => openTradeModal('buy')} 
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <Button
+                    onClick={() => openTradeModal('buy')}
                     className="w-full"
                   >
                     Buy
                   </Button>
-                  <Button 
-                    onClick={() => openTradeModal('sell')} 
-                    variant="outline" 
+                  <Button
+                    onClick={() => openTradeModal('sell')}
+                    variant="outline"
                     className="w-full"
                   >
                     Sell
                   </Button>
                 </div>
+                <div className="flex items-center justify-center">
+                  <WatchlistButton
+                    ticker={fund.ticker}
+                    variant="outline"
+                    showText={true}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-        
-        <TradeModal 
+
+        <TradeModal
           asset={fund}
           assetType="mutual_fund"
           isOpen={isOpen}

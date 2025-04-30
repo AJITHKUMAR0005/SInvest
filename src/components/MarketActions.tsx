@@ -8,6 +8,7 @@ import { useTrade } from '@/hooks/use-trade';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { calculatePercentChange } from '@/lib/utils';
 import TradeModal from './TradeModal';
+import WatchlistButton from './WatchlistButton';
 
 interface MarketActionsProps {
   stock: Stock;
@@ -16,7 +17,7 @@ interface MarketActionsProps {
 const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
   const { balance } = useAccount();
   const { openTradeModal, isOpen, tradeType, closeTradeModal } = useTrade('stock', stock);
-  
+
   const getAssetDetails = () => {
     return {
       name: stock.name,
@@ -27,7 +28,7 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
       changePercent: stock.changePercent
     };
   };
-  
+
   const details = getAssetDetails();
   const percentChange = calculatePercentChange(details.price, details.previousPrice);
   const isPositive = percentChange >= 0;
@@ -69,27 +70,32 @@ const MarketActions: React.FC<MarketActionsProps> = ({ stock }) => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between gap-2">
-          <Button 
+          <Button
             className="flex-1"
             onClick={() => openTradeModal('buy')}
           >
             Buy
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="flex-1"
             onClick={() => openTradeModal('sell')}
           >
             Sell
           </Button>
+          <WatchlistButton
+            ticker={stock.ticker}
+            variant="outline"
+            showText={false}
+          />
         </CardFooter>
       </Card>
-      
-      <TradeModal 
-        asset={stock} 
-        assetType="stock" 
-        isOpen={isOpen} 
-        onClose={closeTradeModal} 
+
+      <TradeModal
+        asset={stock}
+        assetType="stock"
+        isOpen={isOpen}
+        onClose={closeTradeModal}
         tradeType={tradeType}
       />
     </>

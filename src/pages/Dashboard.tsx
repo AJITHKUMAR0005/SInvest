@@ -15,6 +15,7 @@ import { useAccount } from '@/hooks/use-account';
 import { useInvestments } from '@/hooks/use-investments';
 import { useWatchlist } from '@/hooks/use-watchlist';
 import { useTransactions } from '@/hooks/use-transactions';
+import { useProfile } from '@/contexts/ProfileContext';
 import DepositModal from '@/components/DepositModal';
 import WithdrawModal from '@/components/WithdrawModal';
 import TradeModal from '@/components/TradeModal';
@@ -40,6 +41,7 @@ const featuredLearningContent = [
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { profile, isLoading: isProfileLoading } = useProfile();
   const { balance, isLoading: isBalanceLoading } = useAccount();
   const { investments, isLoading: isInvestmentsLoading } = useInvestments();
   const { watchlistStocks, isLoading: isWatchlistLoading } = useWatchlist();
@@ -128,7 +130,7 @@ const Dashboard: React.FC = () => {
   const topPerformer = getTopPerformer();
   const topPerformerStock = topPerformer ? mockStocks.find(s => s.ticker === topPerformer.ticker) : null;
 
-  const isLoading = isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
+  const isLoading = isProfileLoading || isBalanceLoading || isInvestmentsLoading || isWatchlistLoading || isTransactionsLoading;
 
   const navigate = useNavigate();
 
@@ -149,7 +151,16 @@ const Dashboard: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col gap-6">
               <section className="mb-2">
-                <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {profile?.username ? (
+                    <>
+                      {user?.user_metadata?.last_sign_in_at ? 'Welcome back, ' : 'Welcome, '}
+                      {profile.username}
+                    </>
+                  ) : (
+                    <>Welcome</>
+                  )}
+                </h1>
                 <p className="text-muted-foreground">
                   Here's what's happening with your investments today.
                 </p>

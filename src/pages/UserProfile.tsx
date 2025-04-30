@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { useAccount } from '@/hooks/use-account';
 import { useInvestments } from '@/hooks/use-investments';
@@ -19,12 +20,13 @@ import AnimatedTransition from '@/components/AnimatedTransition';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import AvatarSelectionModal from '@/components/AvatarSelectionModal';
 import {
   User, Pencil, Save, AlertCircle, Check, Shield, ChevronRight,
   Wallet, LineChart, Clock, BookOpen, Bell, Lock, RefreshCw,
   ArrowUpRight, Star, Trash2, BarChart3, History, Settings,
   LogOut, AlertTriangle, ExternalLink, BadgeCheck, PlayCircle,
-  Newspaper, Phone
+  Newspaper, Phone, Image
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
@@ -44,6 +46,7 @@ import { mockStocks } from '@/utils/mockData';
 
 const UserProfile = () => {
   const { user } = useAuth();
+  const { profile, updateProfile: updateProfileData, refreshProfile } = useProfile();
   const { settings, updateSettings, isLoading: isSettingsLoading } = useUserSettings();
   const { balance, isLoading: isBalanceLoading } = useAccount();
   const { investments, isLoading: isInvestmentsLoading } = useInvestments();
@@ -52,13 +55,14 @@ const UserProfile = () => {
   const { progress, isLoading: isLearningLoading } = useLearningProgress();
   const { resetAccount, isResetting } = useAccountReset();
 
-  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState(user?.email || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   // KYC verification states
   const [panNumber, setPanNumber] = useState('');
@@ -66,41 +70,61 @@ const UserProfile = () => {
   const [isKycSubmitting, setIsKycSubmitting] = useState(false);
   const [kycVerified, setKycVerified] = useState(false);
 
+  // Initialize KYC state from settings
+  React.useEffect(() => {
+    if (settings?.kyc_data) {
+      const kycData = settings.kyc_data;
+      console.log('Initializing KYC state from settings:', kycData);
+
+      setKycVerified(kycData.verified || false);
+
+      if (kycData.verified) {
+        setPanNumber(kycData.pan_number || '');
+        setMobileNumber(kycData.mobile_number || '');
+      }
+    }
+  }, [settings]);
+
   React.useEffect(() => {
     if (user) {
+      console.log('useEffect triggered in UserProfile - fetching profile');
+      console.log('Current user ID:', user.id);
       fetchProfile();
     }
-  }, [user, settings]);
+  }, [user, profile, settings, settings?.kyc_data]);
 
   const fetchProfile = async () => {
     if (!user) return;
 
     try {
-      // Fetch basic profile info
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setFullName(data.full_name || '');
-        setAvatarUrl(data.avatar_url || '');
+      // Use profile data from context
+      if (profile) {
+        console.log('Using profile data from context:', profile);
+        setUsername(profile.username || '');
+        setAvatarUrl(profile.avatar_url || '');
+      } else {
+        console.log('No profile data in context, refreshing...');
+        await refreshProfile();
       }
 
       // Get KYC info from settings
-      if (settings && settings.notification_preferences && settings.notification_preferences.kyc_data) {
-        const kycInfo = settings.notification_preferences.kyc_data;
+      console.log('Settings in fetchProfile:', settings);
+
+      if (settings && settings.kyc_data) {
+        const kycInfo = settings.kyc_data;
         console.log('KYC Info from settings:', kycInfo);
 
         setKycVerified(kycInfo.verified || false);
+        console.log('Setting kycVerified to:', kycInfo.verified || false);
 
         if (kycInfo.verified) {
           setPanNumber(kycInfo.pan_number || '');
           setMobileNumber(kycInfo.mobile_number || '');
+          console.log('Setting PAN and mobile:', kycInfo.pan_number, kycInfo.mobile_number);
         }
+      } else {
+        console.log('No KYC data found in settings');
+        setKycVerified(false);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -113,15 +137,15 @@ const UserProfile = () => {
     setIsSaving(true);
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+      // Use the updateProfileData function from ProfileContext
+      const result = await updateProfileData({
+        username: username,
+        avatar_url: avatarUrl
+      });
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error('Failed to update profile');
+      }
 
       toast({
         title: "Profile updated",
@@ -138,6 +162,40 @@ const UserProfile = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAvatarSelect = async (newAvatarUrl: string) => {
+    setAvatarUrl(newAvatarUrl);
+
+    if (!isEditing) {
+      // If not in edit mode, update avatar immediately
+      setIsSaving(true);
+
+      try {
+        // Use the updateProfileData function from ProfileContext
+        const result = await updateProfileData({
+          avatar_url: newAvatarUrl
+        });
+
+        if (!result.success) {
+          throw new Error('Failed to update avatar');
+        }
+
+        toast({
+          title: "Avatar updated",
+          description: "Your profile picture has been updated",
+        });
+      } catch (error) {
+        console.error('Error updating avatar:', error);
+        toast({
+          variant: "destructive",
+          title: "Update failed",
+          description: "There was an error updating your avatar",
+        });
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -192,28 +250,23 @@ const UserProfile = () => {
       // Simulate verification delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Get current notification preferences
-      const currentPrefs = settings?.notification_preferences || {
-        price_alerts: true,
-        order_updates: true,
-        market_news: true
+      // Create KYC data object
+      const kycData = {
+        verified: true,
+        pan_number: panNumber,
+        mobile_number: mobileNumber,
+        verified_at: new Date().toISOString()
       };
 
-      // Add KYC data to notification preferences
-      const updatedPrefs = {
-        ...currentPrefs,
-        kyc_data: {
-          verified: true,
-          pan_number: panNumber,
-          mobile_number: mobileNumber,
-          verified_at: new Date().toISOString()
-        }
-      };
+      console.log('KYC data to be saved:', kycData);
 
       // Use the updateSettings function from the useUserSettings hook
+      console.log('Calling updateSettings with:', { kyc_data: kycData });
       const result = await updateSettings({
-        notification_preferences: updatedPrefs
+        kyc_data: kycData
       });
+
+      console.log('Update result:', result);
 
       if (!result.success) {
         throw new Error('Failed to update KYC data');
@@ -344,14 +397,14 @@ const UserProfile = () => {
                       </div>
                       <div className="flex justify-center -mt-16">
                         <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                          <AvatarImage src={avatarUrl} alt={fullName} />
+                          <AvatarImage src={avatarUrl} alt={username} />
                           <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                            {fullName ? fullName.charAt(0).toUpperCase() : <User />}
+                            {username ? username.charAt(0).toUpperCase() : <User />}
                           </AvatarFallback>
                         </Avatar>
                       </div>
                       <CardContent className="text-center pt-4">
-                        <h3 className="text-2xl font-bold">{fullName || "Your Name"}</h3>
+                        <h3 className="text-2xl font-bold">{username || "Your Name"}</h3>
                         <p className="text-muted-foreground">{email}</p>
 
                         <div className="mt-6 flex justify-center">
@@ -442,11 +495,11 @@ const UserProfile = () => {
                         {isEditing ? (
                           <div className="space-y-6">
                             <div>
-                              <Label htmlFor="fullName">Full Name</Label>
+                              <Label htmlFor="username">Username</Label>
                               <Input
-                                id="fullName"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
+                                id="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 className="mt-1"
                               />
                             </div>
@@ -468,19 +521,31 @@ const UserProfile = () => {
                               <Label htmlFor="avatar">Profile Picture</Label>
                               <div className="mt-1 flex items-center space-x-4">
                                 <Avatar className="h-16 w-16">
-                                  <AvatarImage src={avatarUrl} alt={fullName} />
+                                  <AvatarImage src={avatarUrl} alt={username} />
                                   <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                                    {fullName ? fullName.charAt(0).toUpperCase() : <User />}
+                                    {username ? username.charAt(0).toUpperCase() : <User />}
                                   </AvatarFallback>
                                 </Avatar>
-                                <Button variant="outline" disabled>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setIsAvatarModalOpen(true)}
+                                  type="button"
+                                >
+                                  <Image className="h-4 w-4 mr-2" />
                                   Change Avatar
                                 </Button>
                               </div>
                               <p className="text-sm text-muted-foreground mt-2">
-                                Avatar upload functionality coming soon
+                                Choose from our collection of avatars
                               </p>
                             </div>
+
+                            <AvatarSelectionModal
+                              open={isAvatarModalOpen}
+                              onOpenChange={setIsAvatarModalOpen}
+                              onSelect={handleAvatarSelect}
+                              currentAvatarUrl={avatarUrl}
+                            />
 
                             <div className="flex justify-end space-x-2 pt-4">
                               <Button
@@ -511,8 +576,8 @@ const UserProfile = () => {
                           <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-1">
-                                <div className="text-sm text-muted-foreground">Full Name</div>
-                                <div className="font-medium text-lg">{fullName || "Not set"}</div>
+                                <div className="text-sm text-muted-foreground">Username</div>
+                                <div className="font-medium text-lg">{username || "Not set"}</div>
                               </div>
 
                               <div className="space-y-1">
@@ -682,7 +747,7 @@ const UserProfile = () => {
                               Start your investment journey by buying your first stock
                             </p>
                             <Button asChild>
-                              <Link to="/stocks/AAPL">
+                              <Link to="/market">
                                 Explore Stocks
                               </Link>
                             </Button>
@@ -748,7 +813,7 @@ const UserProfile = () => {
                               Add stocks to your watchlist to monitor their performance
                             </p>
                             <Button asChild>
-                              <Link to="/stocks/AAPL">
+                              <Link to="/market">
                                 Browse Stocks
                               </Link>
                             </Button>

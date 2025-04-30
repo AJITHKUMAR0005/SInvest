@@ -6,12 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Home, LineChart, FileText, Settings, LogOut, User, Menu, Sun, Moon, UserCircle, BookOpen } from 'lucide-react';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const { settings, toggleDarkMode } = useUserSettings();
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -28,24 +30,24 @@ const Navigation = () => {
   };
 
   const menuItems = [
-    { 
-      name: 'Dashboard', 
-      path: '/dashboard', 
+    {
+      name: 'Dashboard',
+      path: '/dashboard',
       icon: <Home className="h-4 w-4 mr-2" />
     },
-    { 
-      name: 'Markets', 
-      path: '/market', 
+    {
+      name: 'Markets',
+      path: '/market',
       icon: <LineChart className="h-4 w-4 mr-2" />
     },
-    { 
-      name: 'Learning', 
-      path: '/learning', 
+    {
+      name: 'Learning',
+      path: '/learning',
       icon: <BookOpen className="h-4 w-4 mr-2" />
     },
-    { 
-      name: 'Profile', 
-      path: '/profile', 
+    {
+      name: 'Profile',
+      path: '/profile',
       icon: <UserCircle className="h-4 w-4 mr-2" />
     },
   ];
@@ -55,7 +57,7 @@ const Navigation = () => {
       <div className="container mx-auto h-full flex items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="text-xl font-bold mr-8">SmartInvest</Link>
-          
+
           {!isMobile && (
             <nav className="flex space-x-1">
               {menuItems.map((item) => (
@@ -75,11 +77,11 @@ const Navigation = () => {
             </nav>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleDarkMode}
             title={settings?.dark_mode ? "Switch to light mode" : "Switch to dark mode"}
           >
@@ -89,7 +91,7 @@ const Navigation = () => {
               <Moon className="h-5 w-5" />
             )}
           </Button>
-          
+
           {isMobile ? (
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
@@ -132,8 +134,9 @@ const Navigation = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
                   <Avatar>
+                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || "User"} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                      {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
